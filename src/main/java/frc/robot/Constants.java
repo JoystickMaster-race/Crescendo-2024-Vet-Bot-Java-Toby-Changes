@@ -4,6 +4,10 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
+import edu.wpi.first.units.Distance;
+import edu.wpi.first.units.Units;
+
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
  * constants. This class should not be used for any other purpose. All constants should be declared
@@ -27,23 +31,42 @@ public final class Constants {
     public static final int kRightRearID = 3;
     public static final int kRightFrontID = 4;
 
+    //SYSID VALUES
+    // public static final double ksVolts = 99;
+    // public static final double kvVoltSecondsPerMeter = 3.2976;
+    // public static final double kaVoltSecondsSquareMeter = 0.67542;
+    // public static final double kPDriveVel = 4.569;
+    // public static final double kTrackWidthMeters = 1.5;
+    // public static final DifferentialDriveKinematics kDriveKinematics = new DifferentialDriveKinematics(kTrackWidthMeters);
+
     // Current limit for drivetrain motors
     public static final int kCurrentLimit = 60;
+
+    //Pathplanning Data 
+    // public static final double cprKeft = 64; //am-4027 CIMCoder
+    // public static final double cprRight = 5; //am 3314-a CIMCoder
+
+    // public static final double kGearRatio = 12.6;
+    // public static final double kWheelRadiusMeters = 0.0762; //3 inch
+    // public static final double kLinearDistanceConversionFactor = (1/(kGearRatio * 2 * Math.PI * (kWheelRadiusMeters))*10);
+
+    // public static final double kRamseteB = 2;
+    // public static final double kRamseteZeta = 0.7;
   }
 
-  public static class ShooterConstants {
-    // PWM ports/CAN IDs for motor controllers
-    public static final int kShooterID = 99;
+  // public static class ShooterConstants {
+  //   // PWM ports/CAN IDs for motor controllers
+  //   public static final int kShooterID = 99;
 
-    public static final double kShooterSpeed = 1;
+  //   public static final double kShooterSpeed = 1;
   
-  }
+  // }
 
-  public static class IntakeConstants {
-    public static final int kIntakeID = 99;
-    public static final int kIndexerID = 99;
+  // public static class IntakeConstants {
+  //   public static final int kIntakeID = 99;
+  //   public static final int kIndexerID = 99;
 
 
-    public static final double kIntakeSpeed = 1;
-  }
+  //   public static final double kIntakeSpeed = 1;
+  // }
 }
