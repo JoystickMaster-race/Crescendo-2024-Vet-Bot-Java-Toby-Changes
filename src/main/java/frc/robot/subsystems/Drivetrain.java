@@ -42,9 +42,9 @@ public class Drivetrain extends SubsystemBase {
   AHRS m_navX;
   Timer m_TimerLeft;
   Timer m_TimerRight;
-  private final DifferentialDriveOdometry m_odometry;
-  Encoder leftEncoder;
-  Encoder rightEncoder;
+  //private final DifferentialDriveOdometry m_odometry;
+  // Encoder leftEncoder;
+  // Encoder rightEncoder;
     WPI_TalonSRX frontLeft;
     WPI_TalonSRX frontRight;
     WPI_TalonSRX backLeft;
@@ -78,7 +78,7 @@ public class Drivetrain extends SubsystemBase {
     // leftEncoder.reset();
     // rightEncoder.reset();
 
-   m_odometry = new DifferentialDriveOdometry(m_navX.getRotation2d(), leftEncoder.getDistance(), rightEncoder.getDistance());
+   //m_odometry = new DifferentialDriveOdometry(m_navX.getRotation2d(), leftEncoder.getDistance(), rightEncoder.getDistance());
 
     //already handled?
     //m_odometry.resetPosition(new Pose2d(), m_navX.getRotation2d());
@@ -89,12 +89,13 @@ public class Drivetrain extends SubsystemBase {
     // frontLeft.setInverted(false);
     // frontRight.setInverted(true);
 
-    /*Sets current limits for the drivetrain motors. This helps reduce the likelihood of wheel spin, reduces motor heating
-     *at stall (Drivetrain pushing against something) and helps maintain battery voltage under heavy demand */
-    //converting ticks to meters two ways (see which one works better?)
+    
+    //converting ticks to meters two ways (see which one works better?
+    //idk how conversions are gonna work with new selectedSensor
     //leftEncoder.setDistancePerPulse(DrivetrainConstants.kLinearDistanceConversionFactor);
-    leftEncoder.setDistancePerPulse(Math.PI*(2*kWheelRadiusMeters)/5);
-    rightEncoder.setDistancePerPulse(Math.PI*(2*kWheelRadiusMeters)/5);
+
+    // leftEncoder.setDistancePerPulse(Math.PI*(2*kWheelRadiusMeters)/5);
+    // rightEncoder.setDistancePerPulse(Math.PI*(2*kWheelRadiusMeters)/5);
 
   }
 
@@ -107,6 +108,8 @@ public class Drivetrain extends SubsystemBase {
 
   public double getRightEncoderDistance(){
     //return rightEncoder.getDistance();
+    //Probably return garbage bc timer output is probably instantaneous and not continuous, why don't they have a getDistance() method, 
+    //it is already inside the quadratureEncoder object
     m_TimerRight.reset();
     m_TimerRight.start();
     return backRight.getSelectedSensorVelocity() * m_TimerRight.get();
@@ -141,10 +144,10 @@ public class Drivetrain extends SubsystemBase {
     return -m_navX.getRate();
   }
 
-  public Pose2d getPose(){
-    //estimate
-    return m_odometry.getPoseMeters();
-  }
+  // public Pose2d getPose(){
+  //   //estimate
+  //   return m_odometry.getPoseMeters();
+  // }
 
   //idk why I made another one
   public DifferentialDriveWheelSpeeds getWheelSpeeds(){
@@ -171,7 +174,7 @@ public class Drivetrain extends SubsystemBase {
 
   public double getLeftEncoderPosition(){
     return backLeft.getSelectedSensorPosition();
-    //HARRY I LEFT THIS HERE BC I DON'T KNOW WHAT THIS METHOD IS ON ABOUT, BUT WILL MOST LIKELY WORK SINCE IT'S INBUILT LOL
+    //HARRY I LEFT THIS HERE BC I DON'T KNOW WHAT THIS METHOD IS ON ABOUT, BUT WILL MOST LIKELY WORK SINCE IT'S INBUILT LOL, SEE WHAT IT GIVES
   }
 
   @Override
