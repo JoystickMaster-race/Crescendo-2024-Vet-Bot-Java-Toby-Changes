@@ -6,13 +6,20 @@ package frc.robot;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.RamseteController;
 import edu.wpi.first.wpilibj2.command.RamseteCommand;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.Trajectory;
+import edu.wpi.first.math.trajectory.TrajectoryConfig;
+import edu.wpi.first.math.trajectory.TrajectoryGenerator;
 import edu.wpi.first.math.trajectory.TrajectoryUtil;
+import edu.wpi.first.math.trajectory.constraint.DifferentialDriveVoltageConstraint;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
@@ -44,7 +51,7 @@ public class RobotContainer {
   //  private final Intake m_intake = new Intake();
   
 
-  // SendableChooser<Command> chooser = new SendableChooser<>();
+  SendableChooser<Command> chooser = new SendableChooser<>();
 
   /*The gamepad provided in the KOP shows up like an XBox controller if the mode switch is set to X mode using the
    * switch on the top.*/
@@ -59,30 +66,30 @@ public class RobotContainer {
     configureBindings();
     // chooser.addOption("taxi path", getAutonomousCommand());
 
-    // Shuffleboard.getTab("Autonomous options").add(chooser);
+     //Shuffleboard.getTab("Autonomous options").add(chooser);
   }
 
-  // public Command loadPathToRamsete(String filename, boolean resetOdometry){
-  //   Trajectory trajectory;
+  //  public Command loadPathToRamsete(String filename, boolean resetOdometry){
+  //    Trajectory trajectory;
 
-  //   try{
-  //     Path trajectoryPath = Filesystem.getDeployDirectory().toPath().resolve(filename);
-  //     trajectory = TrajectoryUtil.fromPathweaverJson(trajectoryPath);
-  //   } catch(IOException exception){
-  //     DriverStation.reportError("Unable to open trajectory dog" + filename, exception.getStackTrace());
-  //     System.out.println("Unable to read from file" + filename);
-  //     return new InstantCommand();
-  //   }
+  //    try{
+  //      Path trajectoryPath = Filesystem.getDeployDirectory().toPath().resolve(filename);
+  //      trajectory = TrajectoryUtil.fromPathweaverJson(trajectoryPath);
+  //    } catch(IOException exception){
+  //      DriverStation.reportError("Unable to open trajectory" + filename, exception.getStackTrace());
+  //      System.out.println("Unable to read from file" + filename);
+  //      return new InstantCommand();
+  //    }
     
-  //   // RamseteCommand ramseteCommand = new RamseteCommand(trajectory, m_drivetrain.getPose(),
-  //   // new RamseteController(DrivetrainConstants.kRamseteB, DrivetrainConstants.kRamseteZeta),
-  //   // new SimpleMotorFeedforward(DrivetrainConstants.ksVolts, DrivetrainConstants.kvVoltSecondsPerMeter,
-  //   // DrivetrainConstants.kaVoltSecondsSquareMeter),
-  //   // DrivetrainConstants.kDriveKinematics, m_drivetrain.getWheelSpeeds(),
-  //   // new PIDController(DrivetrainConstants.kPDriveVel, 0, 0),
-  //   // new PIDController(DrivetrainConstants.kPDriveVel, 0, 0), m_drivetrain.tankDriveVolts(0, 0),
-  //   // m_drivetrain);
-  // }
+  //   RamseteCommand ramseteCommand = new RamseteCommand(trajectory, m_drivetrain.getPose(),
+  //   new RamseteController(DrivetrainConstants.kRamseteB, DrivetrainConstants.kRamseteZeta),
+  //   new SimpleMotorFeedforward(DrivetrainConstants.ksVolts, DrivetrainConstants.kvVoltSecondsPerMeter,
+  //   DrivetrainConstants.kaVoltSecondsSquareMeter),
+  //   DrivetrainConstants.kDriveKinematics, m_drivetrain.getWheelSpeeds(),
+  //   new PIDController(DrivetrainConstants.kPDriveVel, 0, 0),
+  //   new PIDController(DrivetrainConstants.kPDriveVel, 0, 0), m_drivetrain.tankDriveVolts(0, 0),
+  //   m_drivetrain);
+  //  }
 
 
 
@@ -100,6 +107,8 @@ public class RobotContainer {
                     m_driverController.getRightX(), m_driverController.getLeftY()),
             m_drivetrain));
 
+    
+
 
     // Set up a binding to run the intake command while the operator is pressing and holding the
     // left Bumper
@@ -113,7 +122,29 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
+    return new InstantCommand();
     // An example command will be run in autonomous
-    return Autos.exampleAuto(m_drivetrain);
+  //   var autoVoltageConstraint = new DifferentialDriveVoltageConstraint(
+  //     new SimpleMotorFeedforward(DrivetrainConstants.ksVolts, DrivetrainConstants.kvVoltSecondsPerMeter, DrivetrainConstants.kaVoltSecondsSquareMeter), DrivetrainConstants.kDriveKinematics, 10);
+  //   return Autos.exampleAuto(m_drivetrain);
+
+  // TrajectoryConfig config = new TrajectoryConfig(3, 1)
+  //  .setKinematics(DrivetrainConstants.kDriveKinematics)
+  //  .addConstraint(autoVoltageConstraint);
+
+  // Trajectory exampleTraj = TrajectoryGenerator.generateTrajectory( new Pose2d(0, 0, new Rotation2d(0)), List.of(new Translation2d(1, 1), new Translation2d(2, -1)),
+  // new Pose2d(3, 0, new Rotation2d(0)),
+  // config);
+  
+  //   RamseteCommand ramseteCommand = new RamseteCommand(exampleTraj, m_drivetrain::getPose,
+  //   new RamseteController(DrivetrainConstants.kRamseteB, DrivetrainConstants.kRamseteZeta),
+  //   new SimpleMotorFeedforward(DrivetrainConstants.ksVolts, DrivetrainConstants.kvVoltSecondsPerMeter,
+  //   DrivetrainConstants.kaVoltSecondsSquareMeter),
+  //   DrivetrainConstants.kDriveKinematics, m_drivetrain::getWheelSpeeds,
+  //   new PIDController(DrivetrainConstants.kPDriveVel, 0, 0),
+  //   new PIDController(DrivetrainConstants.kPDriveVel, 0, 0), m_drivetrain::tankDriveVolts,
+  //   m_drivetrain);
+
+
   }
 }
