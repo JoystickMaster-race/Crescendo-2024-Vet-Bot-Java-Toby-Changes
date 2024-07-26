@@ -28,15 +28,17 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RamseteCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 //import frc.robot.Constants.ShooterConstants;
 import frc.robot.Constants.DrivetrainConstants;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.Autos;
 
  import frc.robot.subsystems.Drivetrain;
-//  import frc.robot.subsystems.Shooter;
-//  import frc.robot.subsystems.Intake;
+ import frc.robot.subsystems.Shooter;
+ import frc.robot.subsystems.Intake;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -47,8 +49,8 @@ import frc.robot.commands.Autos;
 public class RobotContainer {
   // The robot's subsystems are defined here.
    private final Drivetrain m_drivetrain = new Drivetrain();
-  //  private final Shooter m_shooter = new Shooter();
-  //  private final Intake m_intake = new Intake();
+   private final Shooter m_shooter = new Shooter();
+   private final Intake m_intake = new Intake();
   
 
   SendableChooser<Command> chooser = new SendableChooser<>();
@@ -64,35 +66,40 @@ public class RobotContainer {
   public RobotContainer() {
     // Configure the trigger bindings
     configureBindings();
+    chooser.addOption("Curvy path", loadPathToRamsete("C:\\Users\\foxlo\\Documents\\Crescendo-2024-Vet-Bot-Java-Toby-Changes\\src\\main\\deploy\\deploy\\pathplanner\\paths\\Straight.path",
+     true) );
+    chooser.addOption("Straight", loadPathToRamsete("C:\\Users\\foxlo\\Documents\\Crescendo-2024-Vet-Bot-Java-Toby-Changes\\src\\main\\deploy\\deploy\\pathplanner\\paths\\Curved.path", true));
+
+    Shuffleboard.getTab("Autonomous").add(chooser);
     // chooser.addOption("taxi path", getAutonomousCommand());
 
      //Shuffleboard.getTab("Autonomous options").add(chooser);
   }
 
-  //  public Command loadPathToRamsete(String filename, boolean resetOdometry){
-  //    Trajectory trajectory;
+   public Command loadPathToRamsete(String filename, boolean resetOdometry){
+     Trajectory trajectory;
 
-  //    try{
-  //      Path trajectoryPath = Filesystem.getDeployDirectory().toPath().resolve(filename);
-  //      trajectory = TrajectoryUtil.fromPathweaverJson(trajectoryPath);
-  //    } catch(IOException exception){
-  //      DriverStation.reportError("Unable to open trajectory" + filename, exception.getStackTrace());
-  //      System.out.println("Unable to read from file" + filename);
-  //      return new InstantCommand();
-  //    }
-    
-  //   RamseteCommand ramseteCommand = new RamseteCommand(trajectory, m_drivetrain.getPose(),
-  //   new RamseteController(DrivetrainConstants.kRamseteB, DrivetrainConstants.kRamseteZeta),
-  //   new SimpleMotorFeedforward(DrivetrainConstants.ksVolts, DrivetrainConstants.kvVoltSecondsPerMeter,
-  //   DrivetrainConstants.kaVoltSecondsSquareMeter),
-  //   DrivetrainConstants.kDriveKinematics, m_drivetrain.getWheelSpeeds(),
-  //   new PIDController(DrivetrainConstants.kPDriveVel, 0, 0),
-  //   new PIDController(DrivetrainConstants.kPDriveVel, 0, 0), m_drivetrain.tankDriveVolts(0, 0),
-  //   m_drivetrain);
-  //  }
+     try{
+       Path trajectoryPath = Filesystem.getDeployDirectory().toPath().resolve(filename);
+       trajectory = TrajectoryUtil.fromPathweaverJson(trajectoryPath);
+     } catch(IOException exception){
+       DriverStation.reportError("Unable to open trajectory" + filename, exception.getStackTrace());
+       System.out.println("Unable to read from file" + filename);
+       return new InstantCommand();
+     }
 
+        RamseteCommand ramseteCommand = new RamseteCommand(trajectory, m_drivetrain::getPose,
+    new RamseteController(DrivetrainConstants.kRamseteB, DrivetrainConstants.kRamseteZeta),
+    new SimpleMotorFeedforward(DrivetrainConstants.ksVolts, DrivetrainConstants.kvVoltSecondsPerMeter,
+    DrivetrainConstants.kaVoltSecondsSquareMeter),
+    DrivetrainConstants.kDriveKinematics, m_drivetrain::getWheelSpeeds,
+    new PIDController(DrivetrainConstants.kPDriveVel, 0, 0),
+    new PIDController(DrivetrainConstants.kPDriveVel, 0, 0), m_drivetrain::tankDriveVolts,
+    m_drivetrain);
 
+     return ramseteCommand;
 
+   }
   /**
    * Use this method to define your trigger->command mappings. Triggers can be accessed via the
    * named factory methods in the Command* classes in edu.wpi.first.wpilibj2.command.button (shown
@@ -108,12 +115,48 @@ public class RobotContainer {
             m_drivetrain));
 
     
+    m_driverController
+        .a()
+        .and(m_driverController.rightBumper())
+        .whileTrue(m_drivetrain.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+    m_driverController
+        .b()
+        .and(m_driverController.rightBumper())
+        .whileTrue(m_drivetrain.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+    m_driverController
+        .x()
+        .and(m_driverController.rightBumper())
+        .whileTrue(m_drivetrain.sysIdDynamic(SysIdRoutine.Direction.kForward));
+    m_driverController
+        .y()
+        .and(m_driverController.rightBumper())
+        .whileTrue(m_drivetrain.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
+    m_driverController
+        .a()
+        .and(m_driverController.leftBumper())
+        .whileTrue(m_drivetrain.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+    m_driverController
+        .b()
+        .and(m_driverController.leftBumper())
+        .whileTrue(m_drivetrain.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+    m_driverController
+        .x()
+        .and(m_driverController.leftBumper())
+        .whileTrue(m_drivetrain.sysIdDynamic(SysIdRoutine.Direction.kForward));
+    m_driverController
+        .y()
+        .and(m_driverController.leftBumper())
+        .whileTrue(m_drivetrain.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
     // Set up a binding to run the intake command while the operator is pressing and holding the
     // left Bumper
-    // m_operatorController.leftBumper().whileTrue(m_shooter.getShootCommand());
-    // m_operatorController.rightBumper().whileTrue(m_intake.getIntakeCommand());
+    m_operatorController.leftBumper().whileTrue(m_shooter.getShootCommand());
+
+    if(m_operatorController.getLeftY() < 0.05){
+      m_intake.getIntakeCommand();
+      m_intake.getReverseIntakeCommand();
+    } 
   }
 
   /**
@@ -122,7 +165,8 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    return new InstantCommand();
+    //return new InstantCommand();
+    return chooser.getSelected();
     // An example command will be run in autonomous
   //   var autoVoltageConstraint = new DifferentialDriveVoltageConstraint(
   //     new SimpleMotorFeedforward(DrivetrainConstants.ksVolts, DrivetrainConstants.kvVoltSecondsPerMeter, DrivetrainConstants.kaVoltSecondsSquareMeter), DrivetrainConstants.kDriveKinematics, 10);

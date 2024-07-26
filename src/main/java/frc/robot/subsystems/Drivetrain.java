@@ -9,12 +9,23 @@ import static frc.robot.Constants.DrivetrainConstants.*;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.DrivetrainConstants;
 
 import java.lang.Math;
 
+import edu.wpi.first.units.Distance;
+import edu.wpi.first.units.Measure;
+import edu.wpi.first.units.MutableMeasure;
+import edu.wpi.first.units.Velocity;
 import edu.wpi.first.units.Voltage;
+
+import static edu.wpi.first.units.MutableMeasure.mutable;
+import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.Volts;
+
 
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
@@ -24,13 +35,15 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.RobotController;
+
 import com.kauailabs.navx.frc.AHRS;
 
-/* This class declares the subsystem for the robot drivetrain if controllers are connected via CAN. Make sure to go to
- * RobotContainer and uncomment the line declaring this subsystem and comment the line for PWMDrivetrain.
- *
+/* 
  * The subsystem contains the objects for the hardware contained in the mechanism and handles low level logic
  * for control. Subsystems are a mechanism that, when used in conjuction with command "Requirements", ensure
  * that hardware is only being used by 1 command at a time.
@@ -38,39 +51,95 @@ import com.kauailabs.navx.frc.AHRS;
 public class Drivetrain extends SubsystemBase {
   /*Class member variables. These variables represent things the class needs to keep track of and use between
   different method calls. */
+
+  //Drivebase moving components
   DifferentialDrive m_drivetrain;
+  WPI_TalonSRX frontLeft;
+  WPI_TalonSRX frontRight;
+  WPI_TalonSRX backLeft;
+  WPI_TalonSRX backRight;
+
+  //Virtual components
+  DifferentialDriveOdometry m_odometry;
+  SysIdRoutine m_sysIdRoutine;
+
+  //Sensors
   AHRS m_navX;
   Timer m_TimerLeft;
   Timer m_TimerRight;
-  //private final DifferentialDriveOdometry m_odometry;
-  // Encoder leftEncoder;
-  // Encoder rightEncoder;
-    WPI_TalonSRX frontLeft;
-    WPI_TalonSRX frontRight;
-    WPI_TalonSRX backLeft;
-    WPI_TalonSRX backRight;
-
-
+  Encoder leftEncoder;
+  Encoder rightEncoder;
+  
   /*Constructor. This method is called when an instance of the class is created. This should generally be used to set up
    * member variables and perform any configuration or set up necessary on hardware.
    */
   public Drivetrain() {
-    WPI_TalonSRX frontLeft = new WPI_TalonSRX(1);
-    WPI_TalonSRX frontRight = new WPI_TalonSRX(3);
-    WPI_TalonSRX backLeft = new WPI_TalonSRX(2);
-    WPI_TalonSRX backRight = new WPI_TalonSRX(4);
-    
-    
-    // Encoder leftEncoder = new Encoder(backLeft.getDeviceID(), 7);
-    // Encoder rightEncoder = new Encoder(frontRight.getDeviceID(), 5);
+    frontLeft = new WPI_TalonSRX(2);
+    frontRight = new WPI_TalonSRX(3);
+    backLeft = new WPI_TalonSRX(1);
+    backRight = new WPI_TalonSRX(4);
 
-    backLeft.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, 0, 50);
-    frontRight.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, 0, 50);
+    leftEncoder = new Encoder(0,1);
+    rightEncoder = new Encoder(2, 3);
+
+   final MutableMeasure<Voltage> m_appliedVoltage = mutable(Volts.of(0));
+  // Mutable holder for unit-safe linear distance values, persisted to avoid reallocation.
+   final MutableMeasure<Distance> m_distance = mutable(Meters.of(0));
+  // Mutable holder for unit-safe linear velocity values, persisted to avoid reallocation.
+   final MutableMeasure<Velocity<Distance>> m_velocity = mutable(MetersPerSecond.of(0));
+     m_sysIdRoutine =
+      new SysIdRoutine(
+          // Empty config defaults to 1 volt/second ramp rate and 7 volt step voltage.
+          new SysIdRoutine.Config(),
+          new SysIdRoutine.Mechanism(
+              // Tell SysId how to plumb the driving voltage to the motors.
+              (Measure<Voltage> volts) -> {
+                frontLeft.setVoltage(volts.in(Volts));
+                frontRight.setVoltage(volts.in(Volts));
+              },
+              // Tell SysId how to record a frame of data for each motor on the mechanism being
+              // characterized.
+              log -> {
+                // Record a frame for the left motors.  Since these share an encoder, we consider
+                // the entire group to be one motor.
+                log.motor("drive-left")
+                    .voltage(
+                        m_appliedVoltage.mut_replace(
+                            frontLeft.get() * RobotController.getBatteryVoltage(), Volts))
+                    .linearPosition(m_distance.mut_replace(leftEncoder.getDistance(), Meters))
+                    .linearVelocity(
+                        m_velocity.mut_replace(leftEncoder.getRate(), MetersPerSecond));
+                // Record a frame for the right motors.  Since these share an encoder, we consider
+                // the entire group to be one motor.
+                log.motor("drive-right")
+                    .voltage(
+                        m_appliedVoltage.mut_replace(
+                            frontRight.get() * RobotController.getBatteryVoltage(), Volts))
+                    .linearPosition(m_distance.mut_replace(rightEncoder.getDistance(), Meters))
+                    .linearVelocity(
+                        m_velocity.mut_replace(rightEncoder.getRate(), MetersPerSecond));
+              },
+              // Tell SysId to make generated commands require this subsystem, suffix test state in
+              // WPILog with this subsystem's name ("drive")
+              this));
+    
+  //   //Set current limits to prevent brown-out during acceleration
+  //   backLeft.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, 0, 50);
+  //   frontRight.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, 0, 50);
+    frontLeft.configPeakCurrentLimit(10, 10); /* 35 A */
+    frontLeft.configPeakCurrentDuration(200, 10); /* 200ms */
+    frontLeft.configContinuousCurrentLimit(10, 10); 
+
+    frontRight.configPeakCurrentLimit(10, 10); 
+    frontRight.configPeakCurrentDuration(200, 10); /* 200ms */
+    frontRight.configContinuousCurrentLimit(10, 10); /* 30 */
 
     m_drivetrain = new DifferentialDrive(frontLeft, frontRight);
     m_navX = new AHRS(SPI.Port.kMXP);
     m_TimerLeft = new Timer();
     m_TimerRight = new Timer();
+    leftEncoder.reset();
+    rightEncoder.reset();
     
     m_TimerLeft.reset();
     m_TimerRight.reset();
@@ -78,27 +147,20 @@ public class Drivetrain extends SubsystemBase {
     // leftEncoder.reset();
     // rightEncoder.reset();
 
-   //m_odometry = new DifferentialDriveOdometry(m_navX.getRotation2d(), leftEncoder.getDistance(), rightEncoder.getDistance());
-
-    //already handled?
-    //m_odometry.resetPosition(new Pose2d(), m_navX.getRotation2d());
+    m_odometry = new DifferentialDriveOdometry(m_navX.getRotation2d(), leftEncoder.getDistance(), rightEncoder.getDistance());
 
     backLeft.follow(frontLeft);
     backRight.follow(frontRight);
-
-    // frontLeft.setInverted(false);
-    // frontRight.setInverted(true);
-
     
     //converting ticks to meters two ways (see which one works better?
     //idk how conversions are gonna work with new selectedSensor
     //leftEncoder.setDistancePerPulse(DrivetrainConstants.kLinearDistanceConversionFactor);
 
-    // leftEncoder.setDistancePerPulse(Math.PI*(2*kWheelRadiusMeters)/5);
-    // rightEncoder.setDistancePerPulse(Math.PI*(2*kWheelRadiusMeters)/5);
-
+    //cpr = 5 if am-3441a
+    //cpr = 64 if am-4027
+    leftEncoder.setDistancePerPulse(Math.PI*(2*kWheelRadiusMeters)/64);
+    rightEncoder.setDistancePerPulse(Math.PI*(2*kWheelRadiusMeters)/64);
   }
-
 
   /*Method to control the drivetrain using arcade drive. Arcade drive takes a speed in the X (forward/back) direction
    * and a rotation about the Z (turning the robot about it's center) and uses these to control the drivetrain motors */
@@ -107,33 +169,25 @@ public class Drivetrain extends SubsystemBase {
   }
 
   public double getRightEncoderDistance(){
-    //return rightEncoder.getDistance();
-    //Probably return garbage bc timer output is probably instantaneous and not continuous, why don't they have a getDistance() method, 
-    //it is already inside the quadratureEncoder object
-    m_TimerRight.reset();
-    m_TimerRight.start();
-    return backRight.getSelectedSensorVelocity() * m_TimerRight.get();
+    return rightEncoder.getDistance();
   }
 
   public double getLeftEncoderDistance(){
-    //return leftEncoder.getDistance();
-    m_TimerLeft.reset();
-    m_TimerLeft.start();
-    return backLeft.getSelectedSensorVelocity() * m_TimerLeft.get();
+    return leftEncoder.getDistance();
+
   }
 
-  public double getLeftEncoderVelocity(){
-    // m_Timer.start();
-    // return (leftEncoder.getDistance() / m_Timer.get());
-    //return leftEncoder.getRate();
-    return backLeft.getSelectedSensorVelocity();
+  //TalonSRX Breakout Board Method
+  // public double getLeftEncoderVelocity(){    
+  //   return backLeft.getSelectedSensorVelocity();
+  // }
+
+    public double getLeftEncoderVelocity(){
+    return leftEncoder.getRate();
   }
 
   public double getRightEncoderVelocity(){
-    // m_Timer.start();
-    // return (rightEncoder.getDistance() / m_Timer.get());
-    //return rightEncoder.getRate();
-    return backRight.getSelectedSensorVelocity();
+    return rightEncoder.getRate();
   }
 
   public double getHeading(){
@@ -144,14 +198,14 @@ public class Drivetrain extends SubsystemBase {
     return -m_navX.getRate();
   }
 
-  // public Pose2d getPose(){
-  //   //estimate
-  //   return m_odometry.getPoseMeters();
-  // }
+  public Pose2d getPose(){
+    //estimate
+    return m_odometry.getPoseMeters();
+  }
 
   //idk why I made another one
   public DifferentialDriveWheelSpeeds getWheelSpeeds(){
-    return new DifferentialDriveWheelSpeeds(backLeft.getSelectedSensorVelocity(), frontRight.getSelectedSensorVelocity());
+    return new DifferentialDriveWheelSpeeds(leftEncoder.getRate(), rightEncoder.getRate());
   }
 
   //already handled?
@@ -167,25 +221,33 @@ public class Drivetrain extends SubsystemBase {
     m_drivetrain.feed();
   }
 
-  // public double getAverageEncoderDistance(){
-  //   //return ((getLeftEncoderDistance() + getRightEncoderDistance()) / 2.0);
-  //   return leftEncoder.getDistance() + rightEncoder.getDistance();
-  // }
-
-  public double getLeftEncoderPosition(){
-    return backLeft.getSelectedSensorPosition();
-    //HARRY I LEFT THIS HERE BC I DON'T KNOW WHAT THIS METHOD IS ON ABOUT, BUT WILL MOST LIKELY WORK SINCE IT'S INBUILT LOL, SEE WHAT IT GIVES
+  public double getAverageEncoderDistance(){
+    return (leftEncoder.getDistance() + rightEncoder.getDistance() / 2);
   }
+
+
+  public Command sysIdQuasistatic(SysIdRoutine.Direction direction){
+  return m_sysIdRoutine.quasistatic(direction);
+}
+
+public Command sysIdDynamic(SysIdRoutine.Direction direction) {
+  return m_sysIdRoutine.dynamic(direction);
+}
 
   @Override
   public void periodic() {
-    
+
+    //TalonSRX breakout board method
+    // SmartDashboard.putNumber("Left Encoder velocity ticks", backLeft.getSelectedSensorVelocity());
+    // SmartDashboard.putNumber("Right Encoder velocity ticks", frontRight.getSelectedSensorVelocity()); 
     //m_odometry.update(m_navX.getRotation2d(), backLeft. , rightEncoder.getDistance());
-    SmartDashboard.putNumber("Left Encoder velocity ticks", backLeft.getSelectedSensorVelocity());
-    SmartDashboard.putNumber("Right Encoder velocity ticks", backRight.getSelectedSensorVelocity()); 
+
     SmartDashboard.putNumber("Right Encoder distance", getRightEncoderDistance());
+    SmartDashboard.putNumber("Right Encoder velocity", getRightEncoderVelocity());
+    SmartDashboard.putNumber("Left Encoder velocity", getLeftEncoderVelocity());
     SmartDashboard.putNumber("Left Encoder distance", getLeftEncoderDistance());
-    SmartDashboard.putNumber("Left encoder position wtf", getLeftEncoderPosition());
+    SmartDashboard.putNumber("Left current", frontLeft.getSupplyCurrent());
+    SmartDashboard.putNumber("Right current", frontRight.getSupplyCurrent());
     SmartDashboard.putNumber("Gyro heading", getHeading());
     /*This method will be called once per scheduler run. It can be used for running tasks we know we want to update each
      * loop such as processing sensor data. Our drivetrain is simple so we don't have anything to put here */
