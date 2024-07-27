@@ -30,6 +30,7 @@ import edu.wpi.first.wpilibj2.command.RamseteCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 //import frc.robot.Constants.ShooterConstants;
 import frc.robot.Constants.DrivetrainConstants;
@@ -62,6 +63,8 @@ public class RobotContainer {
   private final CommandXboxController m_operatorController =
       new CommandXboxController(OperatorConstants.kOperatorControllerPort);
 
+  private final CommandGenericHID m_guitarHero = 
+      new CommandGenericHID(OperatorConstants.kDriverControllerPort);
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     // Configure the trigger bindings
@@ -152,12 +155,22 @@ public class RobotContainer {
     // Set up a binding to run the intake command while the operator is pressing and holding the
     // left Bumper
     m_operatorController.leftBumper().whileTrue(m_shooter.getShootCommand());
+    m_guitarHero.povCenter().whileTrue(m_intake.getIntakeCommand());
+    m_guitarHero.pov(270).whileTrue(m_intake.getReverseIntakeCommand());
+
+    if(m_intake.getBeamBreak()){
+      new RunCommand(() -> m_intake.stop(), m_intake)
+        .withTimeout(0.5);
+    }
 
     if(m_operatorController.getLeftY() < 0.05){
       m_intake.getIntakeCommand();
       m_intake.getReverseIntakeCommand();
     } 
   }
+
+
+  
 
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.
