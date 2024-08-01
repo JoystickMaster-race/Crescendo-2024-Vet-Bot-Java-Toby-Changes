@@ -57,15 +57,21 @@ public final class Constants {
   public static class ShooterConstants {
     // PWM ports/CAN IDs for motor controllers
     public static final int kShooterID = 99;
+    public static final int kShooterEncoderIDA = 99;
+    public static final int kShooterEncoderIDB = 99;
+    public static final double kShooterFreeRPS = 5300;
+    public static final double kShooterTargetRPS = 4000;
+    public static final double kShooterToleranceRPS = 50;
+    public static final double kVVoltSecondsPerRotation = 12 / kShooterFreeRPS;
 
     public static final double kShooterSpeed = 1;
   
   }
 
   public static class IntakeConstants {
-    public static final int kIntakeID = 99;
+    public static final int kIntakeID = 5;
     public static final int kIndexerID = 99;
-    public static final int kBeamBreakID = 99;
+    //public static final int kBeamBreakID = 99;
 
     public static final double kIntakeVoltage = 6;
     public static final double kReverseIntakeVoltage = -6;

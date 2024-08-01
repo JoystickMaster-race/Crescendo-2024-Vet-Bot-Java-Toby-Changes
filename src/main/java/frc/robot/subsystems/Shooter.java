@@ -4,47 +4,72 @@
 
 package frc.robot.subsystems;
 
-import static frc.robot.Constants.ShooterConstants.*;
-
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.PIDSubsystem;
 
-public class Shooter extends SubsystemBase {
+import edu.wpi.first.networktables.DoublePublisher;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
+
+import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.Volts;
+
+import static frc.robot.Constants.ShooterConstants.*;
+
+public class Shooter extends PIDSubsystem {
   WPI_VictorSPX m_shooterMotor;
+  Encoder m_shooterEncoder;
+  SimpleMotorFeedforward m_shooterFeedForward;
+  NetworkTableInstance table;
 
-  /** Creates a new Launcher. */
-  public Shooter() {
-    m_shooterMotor = new WPI_VictorSPX(kShooterID);
-  }
+public Shooter(){
+  super(new PIDController(0, 0, 0));
+  m_shooterMotor = new WPI_VictorSPX(kShooterID);
+  m_shooterEncoder = new Encoder(4, 5);
+  m_shooterFeedForward = new SimpleMotorFeedforward(0.05, kVVoltSecondsPerRotation);
+  getController().setTolerance(kShooterTargetRPS);
+  m_shooterEncoder.setDistancePerPulse(0);
+  setSetpoint(kShooterTargetRPS);
+}
 
-  /**
-   * This method is an example of the 'subsystem factory' style of command creation. A method inside
-   * the subsytem is created to return an instance of a command. This works for commands that
-   * operate on only that subsystem, a similar approach can be done in RobotContainer for commands
-   * that need to span subsystems. The Subsystem class has helper methods, such as the startEnd
-   * method used here, to create these commands.
-   */
-  public Command getShootCommand() {
-    // The startEnd helper method takes a method to call when the command is initialized and one to
-    // call when it ends
-    return this.startEnd(
-        // When the command is initialized, set the wheels to the shoot speed values
-        () -> {
+public Command getShootCommand() {
+  return this.startEnd(
+      ()-> {
           setShooterSpeed(kShooterSpeed);
-        },
-        // When the command stops, stop the wheels
-        () -> {
+      },
+      
+      ()-> {
           stop();
-        });
-  }
+      });
+}
 
-  // An accessor method to set the speed (technically the output percentage) of the launch wheel
-  public void setShooterSpeed(double speed) {
-    m_shooterMotor.set(speed);
-  }
+@Override
+public void useOutput(double output, double setpoint){
+  m_shooterMotor.setVoltage(output + m_shooterFeedForward.calculate(RadiansPerSecond.of(kShooterTargetRPS).in(RadiansPerSecond)));
+}
 
-  public void stop() {
-    m_shooterMotor.set(0);
-  }
+@Override
+public double getMeasurement(){
+  return m_shooterEncoder.getRate();
+}
+
+public void setShooterSpeed(double speed){
+  m_shooterMotor.set(speed);
+}
+
+public void stop(){
+  m_shooterMotor.set(0);
+}
+
+@Override
+public void periodic() {
+  SmartDashboard.putNumber("Shooter rate", m_shooterEncoder.getRate());
+}
+
 }

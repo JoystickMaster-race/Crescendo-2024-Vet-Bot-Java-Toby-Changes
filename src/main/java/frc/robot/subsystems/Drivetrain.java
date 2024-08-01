@@ -126,26 +126,22 @@ public class Drivetrain extends SubsystemBase {
   //   //Set current limits to prevent brown-out during acceleration
   //   backLeft.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, 0, 50);
   //   frontRight.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, 0, 50);
-    frontLeft.configPeakCurrentLimit(10, 10); /* 35 A */
-    frontLeft.configPeakCurrentDuration(200, 10); /* 200ms */
-    frontLeft.configContinuousCurrentLimit(10, 10); 
+    // frontLeft.configPeakCurrentLimit(10, 10); /* 35 A */
+    // frontLeft.configPeakCurrentDuration(200, 10); /* 200ms */
+    // frontLeft.configContinuousCurrentLimit(10, 10); 
 
-    frontRight.configPeakCurrentLimit(10, 10); 
-    frontRight.configPeakCurrentDuration(200, 10); /* 200ms */
-    frontRight.configContinuousCurrentLimit(10, 10); /* 30 */
+    // frontRight.configPeakCurrentLimit(10, 10); 
+    // frontRight.configPeakCurrentDuration(200, 10); /* 200ms */
+    // frontRight.configContinuousCurrentLimit(10, 10); /* 30 */
 
     m_drivetrain = new DifferentialDrive(frontLeft, frontRight);
     m_navX = new AHRS(SPI.Port.kMXP);
     m_TimerLeft = new Timer();
     m_TimerRight = new Timer();
-    leftEncoder.reset();
-    rightEncoder.reset();
+
     
     m_TimerLeft.reset();
     m_TimerRight.reset();
-    m_navX.reset();
-    // leftEncoder.reset();
-    // rightEncoder.reset();
 
     m_odometry = new DifferentialDriveOdometry(m_navX.getRotation2d(), leftEncoder.getDistance(), rightEncoder.getDistance());
 
@@ -160,6 +156,9 @@ public class Drivetrain extends SubsystemBase {
     //cpr = 64 if am-4027
     leftEncoder.setDistancePerPulse(Math.PI*(2*kWheelRadiusMeters)/64);
     rightEncoder.setDistancePerPulse(Math.PI*(2*kWheelRadiusMeters)/64);
+    leftEncoder.reset();
+    rightEncoder.reset();
+    m_navX.reset();
   }
 
   /*Method to control the drivetrain using arcade drive. Arcade drive takes a speed in the X (forward/back) direction

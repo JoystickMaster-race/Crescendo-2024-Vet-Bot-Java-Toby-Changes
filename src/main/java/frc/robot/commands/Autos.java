@@ -8,10 +8,13 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.subsystems.Drivetrain;
+import frc.robot.subsystems.Shooter;
+import frc.robot.subsystems.Intake;
+
 
 public final class Autos {
   /** Example static factory for an autonomous command. */
-  public static Command exampleAuto(Drivetrain drivetrain) {
+  public static Command TaxiAuto(Drivetrain drivetrain) {
     /**
      * RunCommand is a helper class that creates a command from a single method, in this case we
      * pass it the arcadeDrive method to drive straight back at half power. We modify that command
@@ -21,6 +24,11 @@ public final class Autos {
     return new RunCommand(() -> drivetrain.arcadeDrive(-.5, 0), drivetrain)
         .withTimeout(1)
         .andThen(new RunCommand(() -> drivetrain.arcadeDrive(0, 0), drivetrain));
+  }
+
+  public static Command Taxi_Score(Drivetrain drivetrain, Shooter shooter, Intake intake){
+    return new RunCommand(() -> shooter.enable(), shooter)
+    .andThen(new RunCommand(() -> intake.getIntakeCommand(), intake));
   }
 
   private Autos() {

@@ -18,7 +18,7 @@ public class Intake extends SubsystemBase{
     public Intake(){
         m_intakeMotor = new WPI_VictorSPX(kIntakeID);
         m_indexMotor = new WPI_VictorSPX(kIndexerID);
-        m_beamBreak = new DigitalInput(kBeamBreakID);
+        //m_beamBreak = new DigitalInput(kBeamBreakID);
 
         m_indexMotor.follow(m_intakeMotor);
     }
@@ -49,12 +49,12 @@ public void setIntakeSpeed(double speed){
     m_intakeMotor.set(speed);
 }
 
-// public void setIntakeVoltage(){
-//     m_intakeMotor.setVoltage(kIntakeVoltage);
-// }
-public boolean getBeamBreak(){
-    return m_beamBreak.get();
+public void setIntakeVoltage(){
+    m_intakeMotor.setVoltage(kIntakeVoltage);
 }
+// public boolean getBeamBreak(){
+//     return m_beamBreak.get();
+// }
 public void stop(){
     m_intakeMotor.set(0);
 }
