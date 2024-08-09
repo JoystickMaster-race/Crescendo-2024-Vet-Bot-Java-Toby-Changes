@@ -8,6 +8,7 @@ import static frc.robot.Constants.DrivetrainConstants.*;
 
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.drive.DifferentialDrive.WheelSpeeds;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -24,6 +25,7 @@ import edu.wpi.first.units.Voltage;
 import static edu.wpi.first.units.MutableMeasure.mutable;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.Rotation;
 import static edu.wpi.first.units.Units.Volts;
 
 
@@ -32,16 +34,20 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
-
+import edu.wpi.first.math.proto.Kinematics;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.RobotController;
 
 import com.kauailabs.navx.frc.AHRS;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.util.ReplanningConfig;
 
 /* 
  * The subsystem contains the objects for the hardware contained in the mechanism and handles low level logic
@@ -159,7 +165,32 @@ public class Drivetrain extends SubsystemBase {
     leftEncoder.reset();
     rightEncoder.reset();
     m_navX.reset();
+
+    // All other subsystem initialization
+    // ...
+
+    // Configure AutoBuilder last
+    AutoBuilder.configureRamsete(
+            this::getPose, // Robot pose supplier
+            this::resetPose, // Method to reset odometry (will be called if your auto has a starting pose)
+            this::getSpeeds, // Current ChassisSpeeds supplier
+            this::drive, // Method that will drive the robot given ChassisSpeeds
+            new ReplanningConfig(), // Default path replanning config. See the API for the options here
+            () -> {
+              // Boolean supplier that controls when the path will be mirrored for the red alliance
+              // This will flip the path being followed to the red side of the field.
+              // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+
+              var alliance = DriverStation.getAlliance();
+              if (alliance.isPresent()) {
+                return alliance.get() == DriverStation.Alliance.Red;
+              }
+              return false;
+            },
+            this // Reference to this subsystem to set requirements
+    );
   }
+
 
   /*Method to control the drivetrain using arcade drive. Arcade drive takes a speed in the X (forward/back) direction
    * and a rotation about the Z (turning the robot about it's center) and uses these to control the drivetrain motors */
@@ -167,6 +198,17 @@ public class Drivetrain extends SubsystemBase {
     m_drivetrain.arcadeDrive(speed, rotation);
   }
 
+    public void drive(ChassisSpeeds speeds){
+    DifferentialDriveWheelSpeeds wheelSpeeds = kDriveKinematics.toWheelSpeeds(speeds);
+    m_drivetrain.arcadeDrive(wheelSpeeds.leftMetersPerSecond, wheelSpeeds.rightMetersPerSecond);
+  }
+
+    public ChassisSpeeds getSpeeds(){
+    DifferentialDriveWheelSpeeds speeds = new DifferentialDriveWheelSpeeds(leftEncoder.getRate(), rightEncoder.getRate());
+    return kDriveKinematics.toChassisSpeeds(speeds);
+  }
+
+  
   public double getRightEncoderDistance(){
     return rightEncoder.getDistance();
   }
@@ -175,11 +217,6 @@ public class Drivetrain extends SubsystemBase {
     return leftEncoder.getDistance();
 
   }
-
-  //TalonSRX Breakout Board Method
-  // public double getLeftEncoderVelocity(){    
-  //   return backLeft.getSelectedSensorVelocity();
-  // }
 
     public double getLeftEncoderVelocity(){
     return leftEncoder.getRate();
@@ -198,14 +235,18 @@ public class Drivetrain extends SubsystemBase {
   }
 
   public Pose2d getPose(){
-    //estimate
     return m_odometry.getPoseMeters();
   }
 
-  //idk why I made another one
+  
+  public void resetPose(Pose2d initialPose2d){
+    m_odometry.resetPosition(m_navX.getRotation2d(), null, initialPose2d);
+  }
+
   public DifferentialDriveWheelSpeeds getWheelSpeeds(){
     return new DifferentialDriveWheelSpeeds(leftEncoder.getRate(), rightEncoder.getRate());
   }
+
 
   //already handled?
   // public void resetOdometry(Pose2d pose){
@@ -224,7 +265,6 @@ public class Drivetrain extends SubsystemBase {
     return (leftEncoder.getDistance() + rightEncoder.getDistance() / 2);
   }
 
-
   public Command sysIdQuasistatic(SysIdRoutine.Direction direction){
   return m_sysIdRoutine.quasistatic(direction);
 }
@@ -233,13 +273,53 @@ public Command sysIdDynamic(SysIdRoutine.Direction direction) {
   return m_sysIdRoutine.dynamic(direction);
 }
 
+public void setMaxOutput(double maxOutput){
+  m_drivetrain.setMaxOutput(maxOutput);
+}
+
+
+public void stop(){
+  frontLeft.stopMotor();
+  frontRight.stopMotor();
+}
+
+public Command getStopDriveCommand() {
+  return this.startEnd(
+      ()-> {
+          stop();
+      }, 
+      ()-> {stop();
+});
+}
+
+public Command driveDistance(double distance, double speed){
+  return runOnce(
+    () -> {
+      leftEncoder.reset();
+      rightEncoder.reset();
+    })
+    .andThen(run(() -> m_drivetrain.arcadeDrive(speed, 0)))
+    .until(
+      () -> Math.max(leftEncoder.getDistance(), rightEncoder.getDistance()) >= distance) 
+
+      .finallyDo(interrupted -> frontLeft.stopMotor())
+      .finallyDo(interrupted -> frontRight.stopMotor());
+}
+
+// public Command rotateAngle(double speed, double angle){
+//   return runOnce(
+//     () -> {
+//       m_navX.reset();
+//     })
+//     .andThen(run(() -> m_drivetrain.arcadeDrive(0, angle)))
+//     .until(
+//       () -> Math.max(m_navX.getAngle()) >= angle)
+//       .finallyDo(interrupred -> frontLeft.stopMotor())
+//       .finallyDo(interrupted -> frontRight.stopMotor());
+    
+// }
   @Override
   public void periodic() {
-
-    //TalonSRX breakout board method
-    // SmartDashboard.putNumber("Left Encoder velocity ticks", backLeft.getSelectedSensorVelocity());
-    // SmartDashboard.putNumber("Right Encoder velocity ticks", frontRight.getSelectedSensorVelocity()); 
-    //m_odometry.update(m_navX.getRotation2d(), backLeft. , rightEncoder.getDistance());
 
     SmartDashboard.putNumber("Right Encoder distance", getRightEncoderDistance());
     SmartDashboard.putNumber("Right Encoder velocity", getRightEncoderVelocity());

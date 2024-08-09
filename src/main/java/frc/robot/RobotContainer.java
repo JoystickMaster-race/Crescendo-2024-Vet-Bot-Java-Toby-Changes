@@ -8,6 +8,11 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.commands.PathPlannerAuto;
+import com.pathplanner.lib.path.PathPlannerPath;
+
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.RamseteController;
 import edu.wpi.first.wpilibj2.command.RamseteCommand;
@@ -24,6 +29,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -55,11 +61,15 @@ public class RobotContainer {
    private final Shooter m_shooter = new Shooter();
    private final Intake m_intake = new Intake();
 
+  //Special PID Ball-Pit
    private Command spinUpShooterCommand = Commands.runOnce(m_shooter::enable, m_shooter);
    private Command  stopShooterCommand = Commands.runOnce(m_shooter::disable, m_shooter);
   
 
-  SendableChooser<Command> chooser = new SendableChooser<>();
+  //SendableChooser<Command> chooser = new SendableChooser<>();
+
+  //private final SendableChooser<Command> chooser;
+  SendableChooser<Command> chooser;
 
   /*The gamepad provided in the KOP shows up like an XBox controller if the mode switch is set to X mode using the
    * switch on the top.*/
@@ -68,46 +78,71 @@ public class RobotContainer {
   private final CommandXboxController m_operatorController =
       new CommandXboxController(OperatorConstants.kOperatorControllerPort);
 
-  private final CommandGenericHID m_guitarHero = 
-      new CommandGenericHID(OperatorConstants.kOperatorControllerPort);
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
-    // Configure the trigger bindings
-    configureBindings();
-    chooser.addOption("Curvy path", loadPathToRamsete("C:\\Users\\foxlo\\Documents\\Crescendo-2024-Vet-Bot-Java-Toby-Changes\\src\\main\\deploy\\deploy\\pathplanner\\paths\\Straight.path",
-     true) );
-    chooser.addOption("Straight", loadPathToRamsete("C:\\Users\\foxlo\\Documents\\Crescendo-2024-Vet-Bot-Java-Toby-Changes\\src\\main\\deploy\\deploy\\pathplanner\\paths\\Curved.path", true));
 
-    Shuffleboard.getTab("Autonomous").add(chooser);
+    NamedCommands.registerCommand("Set Intake", m_intake.getIntakeCommand().withTimeout(3));
+    NamedCommands.registerCommand("Shooter Raw", m_shooter.getShootCommand());
+    NamedCommands.registerCommand("Shooter Spinup", spinUpShooterCommand);
+
+    chooser = AutoBuilder.buildAutoChooser();
+    SmartDashboard.putData("AutoChooser", chooser);
+
+    // **Raw/Sensor Style**
+
+    // Command FancyAuto = Autos.FancyAuto(m_drivetrain);
+    // Command RawTaxi = Autos.TaxiAuto(m_drivetrain);
+    // chooser.addOption("Fancy Auto", FancyAuto);  
+    // chooser.addOption("Raw Taxi", RawTaxi);
+
+    // Configure the trigger bindings
+    //Old Way
+    configureBindings();
+    // chooser.addOption("Curvy path", loadPathToRamsete("C:/Users/foxlo/Documents/Crescendo-2024-Vet-Bot-Java-Toby-Changes/src/main/deploy/deploy/pathplanner/paths/Straight.path",
+    //  true) );
+    // chooser.addOption("Straight", loadPathToRamsete("C:/Users/foxlo/Documents/Crescendo-2024-Vet-Bot-Java-Toby-Changes/src/main/deploy/deploy/pathplanner/paths/Curved.path", true));
+
+    // chooser.addOption("Taxi Raw", Autos.TaxiAuto(m_drivetrain));
+    //SmartDashboard.putData(chooser);
+
+    //Shuffleboard.getTab("Autonomous").add(chooser);
+
     // chooser.addOption("taxi path", getAutonomousCommand());
 
      //Shuffleboard.getTab("Autonomous options").add(chooser);
   }
+  // **Old Way**
+  //  public Command loadPathToRamsete(String filename, boolean resetOdometry){
+  //    Trajectory trajectory;
 
-   public Command loadPathToRamsete(String filename, boolean resetOdometry){
-     Trajectory trajectory;
+  //    try{
+  //      Path trajectoryPath = Filesystem.getDeployDirectory().toPath().resolve(filename);
+  //      trajectory = TrajectoryUtil.fromPathweaverJson(trajectoryPath);
+  //    } catch(IOException exception){
+  //      DriverStation.reportError("Unable to open trajectory" + filename, exception.getStackTrace());
+  //      System.out.println("Unable to read from file" + filename);
+  //      return new InstantCommand();
+  //    }
 
-     try{
-       Path trajectoryPath = Filesystem.getDeployDirectory().toPath().resolve(filename);
-       trajectory = TrajectoryUtil.fromPathweaverJson(trajectoryPath);
-     } catch(IOException exception){
-       DriverStation.reportError("Unable to open trajectory" + filename, exception.getStackTrace());
-       System.out.println("Unable to read from file" + filename);
-       return new InstantCommand();
-     }
+  //       RamseteCommand ramseteCommand = new RamseteCommand(trajectory, m_drivetrain::getPose,
+  //   new RamseteController(DrivetrainConstants.kRamseteB, DrivetrainConstants.kRamseteZeta),
+  //   new SimpleMotorFeedforward(DrivetrainConstants.ksVolts, DrivetrainConstants.kvVoltSecondsPerMeter,
+  //   DrivetrainConstants.kaVoltSecondsSquareMeter),
+  //   DrivetrainConstants.kDriveKinematics, m_drivetrain::getWheelSpeeds,
+  //   new PIDController(DrivetrainConstants.kPDriveVel, 0, 0),
+  //   new PIDController(DrivetrainConstants.kPDriveVel, 0, 0), m_drivetrain::tankDriveVolts,
+  //   m_drivetrain);
 
-        RamseteCommand ramseteCommand = new RamseteCommand(trajectory, m_drivetrain::getPose,
-    new RamseteController(DrivetrainConstants.kRamseteB, DrivetrainConstants.kRamseteZeta),
-    new SimpleMotorFeedforward(DrivetrainConstants.ksVolts, DrivetrainConstants.kvVoltSecondsPerMeter,
-    DrivetrainConstants.kaVoltSecondsSquareMeter),
-    DrivetrainConstants.kDriveKinematics, m_drivetrain::getWheelSpeeds,
-    new PIDController(DrivetrainConstants.kPDriveVel, 0, 0),
-    new PIDController(DrivetrainConstants.kPDriveVel, 0, 0), m_drivetrain::tankDriveVolts,
-    m_drivetrain);
+  //   return ramseteCommand;
 
-     return ramseteCommand;
+    //  if(resetOdometry){
+    //   return new SequentialCommandGroup(
+    //     new InstantCommand(() -> m_drivetrain.resetOdometry(trajectory.getInitialPose())), ramseteCommand);
+    //  } else {
+    //   return ramseteCommand;
+    //  }
 
-   }
+   //}
   /**
    * Use this method to define your trigger->command mappings. Triggers can be accessed via the
    * named factory methods in the Command* classes in edu.wpi.first.wpilibj2.command.button (shown
@@ -122,7 +157,7 @@ public class RobotContainer {
                     m_driverController.getRightX(), m_driverController.getLeftY()),
             m_drivetrain));
 
-    
+    // **SYSID should probably use**
     m_driverController
         .a()
         .and(m_driverController.rightBumper())
@@ -157,32 +192,36 @@ public class RobotContainer {
         .and(m_driverController.leftBumper())
         .whileTrue(m_drivetrain.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
-    // Set up a binding to run the intake command while the operator is pressing and holding the
     //m_guitarHero.button(0).whileTrue(m_intake.getIntakeCommand());
-    m_operatorController.a().whileTrue(m_intake.getIntakeCommand());
-    m_operatorController.x().whileTrue(m_intake.getReverseIntakeCommand());
+
+    // m_operatorController.a().onTrue(m_intake.getIntakeCommand());
+    // m_operatorController.x().onTrue(m_intake.getReverseIntakeCommand());
+    // m_operatorController.y().onTrue(m_intake.getStopIntakeCommand());
     m_operatorController.pov(225).whileTrue(m_intake.getIntakeCommand());
     m_operatorController.pov(315).whileTrue(m_intake.getReverseIntakeCommand());
+    m_operatorController.a().whileTrue(spinUpShooterCommand);
+    m_operatorController.x().whileTrue(stopShooterCommand);
 
 
     if(m_operatorController.getRightTriggerAxis() > 0.05){
       m_shooter.enable();
     }
 
-    // if(m_intake.getBeamBreak()){
-    //   new RunCommand(() -> m_intake.stop(), m_intake)
-    //     .withTimeout(0.5);
-    // }
+    if(m_intake.getBeamBreak()){
+      new RunCommand(() -> m_intake.stop(), m_intake)
+        .withTimeout(0.5);
+    }
 
-    if(m_operatorController.getLeftY() < 0.05){
-      m_intake.getIntakeCommand();
-    } 
-    else if(m_operatorController.getLeftY() > 0.05){
-      m_intake.getReverseIntakeCommand();
-    }
-    else{
-      m_intake.stop();
-    }
+    // **Boring X-BOX Controls**
+    // if(m_operatorController.getLeftY() < 0.05){
+    //   m_intake.getIntakeCommand();
+    // } 
+    // else if(m_operatorController.getLeftY() > 0.05){
+    //   m_intake.getReverseIntakeCommand();
+    // }
+    // else{
+    //   m_intake.stop();
+    // }
 
   }
 
@@ -192,8 +231,17 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    //return new InstantCommand();
-    return chooser.getSelected();
+    
+    // **Safe way!!**
+    //return chooser.getSelected();
+
+    //return new PathPlannerAuto("Example");
+     // Load the path you want to follow using its name in the GUI
+    PathPlannerPath path = PathPlannerPath.fromPathFile("Straight");
+
+    // Create a path following command using AutoBuilder. This will also trigger event markers.
+    return AutoBuilder.followPath(path);
+
     // An example command will be run in autonomous
   //   var autoVoltageConstraint = new DifferentialDriveVoltageConstraint(
   //     new SimpleMotorFeedforward(DrivetrainConstants.ksVolts, DrivetrainConstants.kvVoltSecondsPerMeter, DrivetrainConstants.kaVoltSecondsSquareMeter), DrivetrainConstants.kDriveKinematics, 10);

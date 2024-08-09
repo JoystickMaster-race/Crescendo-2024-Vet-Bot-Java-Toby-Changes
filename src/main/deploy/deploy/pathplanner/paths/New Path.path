@@ -3,73 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 1.248376211038137,
-        "y": 5.570593998330854
+        "x": 1.386419439505546,
+        "y": 5.515621031242063
       },
       "prevControl": null,
       "nextControl": {
-        "x": 0.24837621103813357,
-        "y": 5.570593998330854
+        "x": 0.386419439505546,
+        "y": 5.515621031242063
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 1.673500489858123,
-        "y": 7.300410029391488
+        "x": 2.5123472469167165,
+        "y": 5.515621031242063
       },
       "prevControl": {
-        "x": 1.0874027930853256,
-        "y": 7.265933694287205
-      },
-      "nextControl": {
-        "x": 2.171922058129832,
-        "y": 7.329728945172177
-      },
-      "isLocked": false,
-      "linkedName": null
-    },
-    {
-      "anchor": {
-        "x": 2.2012409739105196,
-        "y": 6.992561413694256
-      },
-      "prevControl": {
-        "x": 1.5855437425160566,
-        "y": 7.2857505715011435
-      },
-      "nextControl": {
-        "x": 2.8169382053049827,
-        "y": 6.6993722558873685
-      },
-      "isLocked": false,
-      "linkedName": null
-    },
-    {
-      "anchor": {
-        "x": 0.7352951848760846,
-        "y": 6.508799303312892
-      },
-      "prevControl": {
-        "x": 1.7761166950905336,
-        "y": 6.60408577960013
-      },
-      "nextControl": {
-        "x": -0.30552632533836455,
-        "y": 6.413512827025654
-      },
-      "isLocked": false,
-      "linkedName": null
-    },
-    {
-      "anchor": {
-        "x": 0.251533074494721,
-        "y": 5.585253456221199
-      },
-      "prevControl": {
-        "x": -0.02699662542182177,
-        "y": 5.999383141623427
+        "x": 1.258149182965033,
+        "y": 5.501368780515338
       },
       "nextControl": null,
       "isLocked": false,
@@ -80,12 +32,19 @@
   "constraintZones": [],
   "eventMarkers": [
     {
-      "name": "Shoot 1",
+      "name": "New Event Marker",
       "waypointRelativePos": 0,
       "command": {
         "type": "parallel",
         "data": {
-          "commands": []
+          "commands": [
+            {
+              "type": "named",
+              "data": {
+                "name": "Shooter Raw"
+              }
+            }
+          ]
         }
       }
     }
@@ -98,13 +57,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 1.4688007143858188,
+    "rotation": 0,
     "rotateFast": false
   },
   "reversed": false,
   "folder": null,
   "previewStartingState": {
-    "rotation": 180.0,
+    "rotation": 0,
     "velocity": 0
   },
   "useDefaultConstraints": true

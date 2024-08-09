@@ -60,7 +60,7 @@ public final class Constants {
     public static final int kShooterEncoderIDA = 99;
     public static final int kShooterEncoderIDB = 99;
     public static final double kShooterFreeRPS = 5300;
-    public static final double kShooterTargetRPS = 4000;
+    public static final double kShooterTargetRPS = 400;
     public static final double kShooterToleranceRPS = 50;
     public static final double kVVoltSecondsPerRotation = 12 / kShooterFreeRPS;
 

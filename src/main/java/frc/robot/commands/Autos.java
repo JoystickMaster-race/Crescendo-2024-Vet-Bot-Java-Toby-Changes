@@ -26,6 +26,10 @@ public final class Autos {
         .andThen(new RunCommand(() -> drivetrain.arcadeDrive(0, 0), drivetrain));
   }
 
+  public static Command FancyAuto(Drivetrain drivetrain){
+    return new RunCommand(() -> drivetrain.driveDistance(3, 1), drivetrain);
+  }
+
   public static Command Taxi_Score(Drivetrain drivetrain, Shooter shooter, Intake intake){
     return new RunCommand(() -> shooter.enable(), shooter)
     .andThen(new RunCommand(() -> intake.getIntakeCommand(), intake));

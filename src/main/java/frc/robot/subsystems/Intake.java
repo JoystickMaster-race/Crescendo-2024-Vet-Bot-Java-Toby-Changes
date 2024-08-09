@@ -45,6 +45,14 @@ public class Intake extends SubsystemBase{
             });
 }
 
+    public Command getStopIntakeCommand() {
+        return this.startEnd(
+            ()-> {
+                stop();
+            }, 
+            ()-> {stop();
+    });
+}
 public void setIntakeSpeed(double speed){
     m_intakeMotor.set(speed);
 }
@@ -52,9 +60,11 @@ public void setIntakeSpeed(double speed){
 public void setIntakeVoltage(){
     m_intakeMotor.setVoltage(kIntakeVoltage);
 }
-// public boolean getBeamBreak(){
-//     return m_beamBreak.get();
-// }
+
+public boolean getBeamBreak(){
+    return m_beamBreak.get();
+}
+
 public void stop(){
     m_intakeMotor.set(0);
 }

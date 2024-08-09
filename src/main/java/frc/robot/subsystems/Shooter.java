@@ -17,6 +17,7 @@ import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 
+import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
@@ -26,7 +27,7 @@ public class Shooter extends PIDSubsystem {
   WPI_VictorSPX m_shooterMotor;
   Encoder m_shooterEncoder;
   SimpleMotorFeedforward m_shooterFeedForward;
-  NetworkTableInstance table;
+  NetworkTableInstance table = NetworkTableInstance.getDefault();
 
 public Shooter(){
   super(new PIDController(0, 0, 0));
@@ -70,6 +71,8 @@ public void stop(){
 @Override
 public void periodic() {
   SmartDashboard.putNumber("Shooter rate", m_shooterEncoder.getRate());
+  table.getEntry("rate").setDouble(m_shooterEncoder.getRate());
+  table.getEntry("setpoint").setDouble(kShooterFreeRPS);
 }
 
 }
