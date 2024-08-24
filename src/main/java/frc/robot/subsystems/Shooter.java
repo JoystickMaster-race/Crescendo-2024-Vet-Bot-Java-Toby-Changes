@@ -5,6 +5,8 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
+
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.math.controller.PIDController;
@@ -23,56 +25,134 @@ import static edu.wpi.first.units.Units.Volts;
 
 import static frc.robot.Constants.ShooterConstants.*;
 
-public class Shooter extends PIDSubsystem {
-  WPI_VictorSPX m_shooterMotor;
-  Encoder m_shooterEncoder;
-  SimpleMotorFeedforward m_shooterFeedForward;
-  NetworkTableInstance table = NetworkTableInstance.getDefault();
+// public class Shooter extends PIDSubsystem {
+//   WPI_VictorSPX m_shooterMotor;
+//   Encoder m_shooterEncoder;
+//   SimpleMotorFeedforward m_shooterFeedForward;
+//   NetworkTableInstance table = NetworkTableInstance.getDefault();
 
-public Shooter(){
-  super(new PIDController(0, 0, 0));
-  m_shooterMotor = new WPI_VictorSPX(kShooterID);
-  m_shooterEncoder = new Encoder(4, 5);
-  m_shooterFeedForward = new SimpleMotorFeedforward(0.05, kVVoltSecondsPerRotation);
-  getController().setTolerance(kShooterTargetRPS);
-  m_shooterEncoder.setDistancePerPulse(0);
-  setSetpoint(kShooterTargetRPS);
+// public Shooter(){
+//   super(new PIDController(0, 0, 0));
+//   m_shooterMotor = new WPI_VictorSPX(kShooterID);
+//   m_shooterEncoder = new Encoder(4, 5);
+//   m_shooterFeedForward = new SimpleMotorFeedforward(0.05, kVVoltSecondsPerRotation);
+//   getController().setTolerance(kShooterTargetRPS);
+//   m_shooterEncoder.setDistancePerPulse(0);
+//   setSetpoint(kShooterTargetRPS);
+// }
+
+
+// @Override
+// public void useOutput(double output, double setpoint){
+//   m_shooterMotor.setVoltage(output + m_shooterFeedForward.calculate(RadiansPerSecond.of(kShooterTargetRPS).in(RadiansPerSecond)));
+// }
+
+// @Override
+// public double getMeasurement(){
+//   return m_shooterEncoder.getRate();
+// }
+
+// public void setShooterSpeed(double speed){
+//   m_shooterMotor.set(speed);
+// }
+
+// public void stop(){
+//   m_shooterMotor.set(0);
+// }
+
+// @Override
+// public void periodic() {
+//   SmartDashboard.putNumber("Shooter rate", m_shooterEncoder.getRate());
+//   table.getEntry("rate").setDouble(m_shooterEncoder.getRate());
+//   table.getEntry("setpoint").setDouble(kShooterFreeRPS);
+// }
+
+// }
+
+///RAW SHENANIGANS
+
+public class Shooter extends SubsystemBase{
+    WPI_TalonSRX m_shooterMotor;
+    Encoder m_shooterEncoder;
+
+    public Shooter(){
+        m_shooterMotor = new WPI_TalonSRX(kShooterID);
+        m_shooterEncoder = new Encoder(kShooterEncoderIDA, kShooterEncoderIDB);
+        
+
+    }
+
+    public Command getShootCommand() {
+        return this.startEnd(
+            ()-> {
+                setShooterSpeed(kShooterSpeed);
+            },
+            
+            ()-> {
+                stop();
+            });
 }
 
-public Command getShootCommand() {
-  return this.startEnd(
-      ()-> {
-          setShooterSpeed(kShooterSpeed);
-      },
-      
-      ()-> {
-          stop();
-      });
+    public Command getShuttleCommand() {
+        return this.startEnd(
+            ()-> {
+                setShooterSpeed(kShuttleSpeed);
+            },
+            
+            ()-> {
+                stop();
+            });
+    }
+
+    public Command getReverseShootCommand() {
+        return this.startEnd(
+            ()-> {
+                setShooterSpeed(kReverseShooterSpeed);
+            },
+            
+            ()-> {
+                stop();
+            });
 }
 
-@Override
-public void useOutput(double output, double setpoint){
-  m_shooterMotor.setVoltage(output + m_shooterFeedForward.calculate(RadiansPerSecond.of(kShooterTargetRPS).in(RadiansPerSecond)));
+    public Command getStopShooterCommand() {
+        return this.startEnd(
+            ()-> {
+                stop();
+            }, 
+            ()-> {stop();
+    });
 }
 
-@Override
-public double getMeasurement(){
-  return m_shooterEncoder.getRate();
-}
+    public Command getAutoShootCommand(){
+        return this.runOnce(
+            () -> {
+                setShooterSpeed(kShooterSpeed);
+            }
+        );
+    }
 
-public void setShooterSpeed(double speed){
-  m_shooterMotor.set(speed);
-}
+    public Command setShooterSpeedCommand(double speed) {
+        return this.runOnce(
+            () -> {
+                setShooterSpeed(speed);
+            }
+        );
+    }
 
-public void stop(){
-  m_shooterMotor.set(0);
-}
+    public void setShooterSpeed(double speed){
+        m_shooterMotor.set(speed);
 
-@Override
-public void periodic() {
-  SmartDashboard.putNumber("Shooter rate", m_shooterEncoder.getRate());
-  table.getEntry("rate").setDouble(m_shooterEncoder.getRate());
-  table.getEntry("setpoint").setDouble(kShooterFreeRPS);
-}
+    }
+
+    public void stop(){
+        m_shooterMotor.set(0);
+    }
+
+    @Override
+    public void periodic() {
+    SmartDashboard.putNumber("Shooter rate", m_shooterEncoder.getRate());
+    //table.getEntry("rate").setDouble(m_shooterEncoder.getRate());
+    }
 
 }

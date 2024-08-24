@@ -66,15 +66,15 @@ public class Drivetrain extends SubsystemBase {
   WPI_TalonSRX backRight;
 
   //Virtual components
-  DifferentialDriveOdometry m_odometry;
-  SysIdRoutine m_sysIdRoutine;
+  // DifferentialDriveOdometry m_odometry;
+  // SysIdRoutine m_sysIdRoutine;
 
   //Sensors
-  AHRS m_navX;
-  Timer m_TimerLeft;
-  Timer m_TimerRight;
-  Encoder leftEncoder;
-  Encoder rightEncoder;
+  // AHRS m_navX;
+  // Timer m_TimerLeft;
+  // Timer m_TimerRight;
+  // Encoder leftEncoder;
+  // Encoder rightEncoder;
   
   /*Constructor. This method is called when an instance of the class is created. This should generally be used to set up
    * member variables and perform any configuration or set up necessary on hardware.
@@ -84,72 +84,85 @@ public class Drivetrain extends SubsystemBase {
     frontRight = new WPI_TalonSRX(3);
     backLeft = new WPI_TalonSRX(1);
     backRight = new WPI_TalonSRX(4);
+    //frontLeft.feed();
+    //m_drivetrain.feed();
 
-    leftEncoder = new Encoder(0,1);
-    rightEncoder = new Encoder(2, 3);
+  //   leftEncoder = new Encoder(0,1);
+  //   rightEncoder = new Encoder(2, 3);
 
-   final MutableMeasure<Voltage> m_appliedVoltage = mutable(Volts.of(0));
-  // Mutable holder for unit-safe linear distance values, persisted to avoid reallocation.
-   final MutableMeasure<Distance> m_distance = mutable(Meters.of(0));
-  // Mutable holder for unit-safe linear velocity values, persisted to avoid reallocation.
-   final MutableMeasure<Velocity<Distance>> m_velocity = mutable(MetersPerSecond.of(0));
-     m_sysIdRoutine =
-      new SysIdRoutine(
-          // Empty config defaults to 1 volt/second ramp rate and 7 volt step voltage.
-          new SysIdRoutine.Config(),
-          new SysIdRoutine.Mechanism(
-              // Tell SysId how to plumb the driving voltage to the motors.
-              (Measure<Voltage> volts) -> {
-                frontLeft.setVoltage(volts.in(Volts));
-                frontRight.setVoltage(volts.in(Volts));
-              },
-              // Tell SysId how to record a frame of data for each motor on the mechanism being
-              // characterized.
-              log -> {
-                // Record a frame for the left motors.  Since these share an encoder, we consider
-                // the entire group to be one motor.
-                log.motor("drive-left")
-                    .voltage(
-                        m_appliedVoltage.mut_replace(
-                            frontLeft.get() * RobotController.getBatteryVoltage(), Volts))
-                    .linearPosition(m_distance.mut_replace(leftEncoder.getDistance(), Meters))
-                    .linearVelocity(
-                        m_velocity.mut_replace(leftEncoder.getRate(), MetersPerSecond));
-                // Record a frame for the right motors.  Since these share an encoder, we consider
-                // the entire group to be one motor.
-                log.motor("drive-right")
-                    .voltage(
-                        m_appliedVoltage.mut_replace(
-                            frontRight.get() * RobotController.getBatteryVoltage(), Volts))
-                    .linearPosition(m_distance.mut_replace(rightEncoder.getDistance(), Meters))
-                    .linearVelocity(
-                        m_velocity.mut_replace(rightEncoder.getRate(), MetersPerSecond));
-              },
-              // Tell SysId to make generated commands require this subsystem, suffix test state in
-              // WPILog with this subsystem's name ("drive")
-              this));
+  //  final MutableMeasure<Voltage> m_appliedVoltage = mutable(Volts.of(0));
+  // // Mutable holder for unit-safe linear distance values, persisted to avoid reallocation.
+  //  final MutableMeasure<Distance> m_distance = mutable(Meters.of(0));
+  // // Mutable holder for unit-safe linear velocity values, persisted to avoid reallocation.
+  //  final MutableMeasure<Velocity<Distance>> m_velocity = mutable(MetersPerSecond.of(0));
+  //    m_sysIdRoutine =
+  //     new SysIdRoutine(
+  //         // Empty config defaults to 1 volt/second ramp rate and 7 volt step voltage.
+  //         new SysIdRoutine.Config(),
+  //         new SysIdRoutine.Mechanism(
+  //             // Tell SysId how to plumb the driving voltage to the motors.
+  //             (Measure<Voltage> volts) -> {
+  //               frontLeft.setVoltage(volts.in(Volts));
+  //               frontRight.setVoltage(volts.in(Volts));
+  //             },
+  //             // Tell SysId how to record a frame of data for each motor on the mechanism being
+  //             // characterized.
+  //             log -> {
+  //               // Record a frame for the left motors.  Since these share an encoder, we consider
+  //               // the entire group to be one motor.
+  //               log.motor("drive-left")
+  //                   .voltage(
+  //                       m_appliedVoltage.mut_replace(
+  //                           frontLeft.get() * RobotController.getBatteryVoltage(), Volts))
+  //                   .linearPosition(m_distance.mut_replace(leftEncoder.getDistance(), Meters))
+  //                   .linearVelocity(
+  //                       m_velocity.mut_replace(leftEncoder.getRate(), MetersPerSecond));
+  //               // Record a frame for the right motors.  Since these share an encoder, we consider
+  //               // the entire group to be one motor.
+  //               log.motor("drive-right")
+  //                   .voltage(
+  //                       m_appliedVoltage.mut_replace(
+  //                           frontRight.get() * RobotController.getBatteryVoltage(), Volts))
+  //                   .linearPosition(m_distance.mut_replace(rightEncoder.getDistance(), Meters))
+  //                   .linearVelocity(
+  //                       m_velocity.mut_replace(rightEncoder.getRate(), MetersPerSecond));
+  //             },
+  //             // Tell SysId to make generated commands require this subsystem, suffix test state in
+  //             // WPILog with this subsystem's name ("drive")
+  //             this));
     
   //   //Set current limits to prevent brown-out during acceleration
-  //   backLeft.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, 0, 50);
-  //   frontRight.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, 0, 50);
-    // frontLeft.configPeakCurrentLimit(10, 10); /* 35 A */
-    // frontLeft.configPeakCurrentDuration(200, 10); /* 200ms */
-    // frontLeft.configContinuousCurrentLimit(10, 10); 
+    // backLeft.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, 0, 50);
+    // frontRight.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, 0, 50);
 
-    // frontRight.configPeakCurrentLimit(10, 10); 
-    // frontRight.configPeakCurrentDuration(200, 10); /* 200ms */
-    // frontRight.configContinuousCurrentLimit(10, 10); /* 30 */
+              //IMPORTANT!!
+    frontLeft.configPeakCurrentLimit(10, 10); /* 35 A */
+    frontLeft.configPeakCurrentDuration(200, 10); /* 200ms */
+    frontLeft.configContinuousCurrentLimit(10, 10); 
+
+
+    frontRight.configPeakCurrentLimit(10, 10); 
+    frontRight.configPeakCurrentDuration(200, 10); /* 200ms */
+    frontRight.configContinuousCurrentLimit(10, 10); /* 30 */
+
+    backLeft.configPeakCurrentLimit(10, 10); /* 35 A */
+    backLeft.configPeakCurrentDuration(200, 10); /* 200ms */
+    backLeft.configContinuousCurrentLimit(10, 10); 
+
+    backRight.configPeakCurrentLimit(10, 10); 
+    backRight.configPeakCurrentDuration(200, 10); /* 200ms */
+    backRight.configContinuousCurrentLimit(10, 10); /* 30 */
 
     m_drivetrain = new DifferentialDrive(frontLeft, frontRight);
-    m_navX = new AHRS(SPI.Port.kMXP);
-    m_TimerLeft = new Timer();
-    m_TimerRight = new Timer();
+    // m_navX = new AHRS(SPI.Port.kMXP);
+    // m_TimerLeft = new Timer();
+    // m_TimerRight = new Timer();
 
     
-    m_TimerLeft.reset();
-    m_TimerRight.reset();
-
-    m_odometry = new DifferentialDriveOdometry(m_navX.getRotation2d(), leftEncoder.getDistance(), rightEncoder.getDistance());
+    // m_TimerLeft.reset();
+    // m_TimerRight.reset();
+    //frontLeft.setInverted(true);
+   // m_odometry = new DifferentialDriveOdometry(m_navX.getRotation2d(), leftEncoder.getDistance(), rightEncoder.getDistance());
 
     backLeft.follow(frontLeft);
     backRight.follow(frontRight);
@@ -160,35 +173,35 @@ public class Drivetrain extends SubsystemBase {
 
     //cpr = 5 if am-3441a
     //cpr = 64 if am-4027
-    leftEncoder.setDistancePerPulse(Math.PI*(2*kWheelRadiusMeters)/64);
-    rightEncoder.setDistancePerPulse(Math.PI*(2*kWheelRadiusMeters)/64);
-    leftEncoder.reset();
-    rightEncoder.reset();
-    m_navX.reset();
+    // leftEncoder.setDistancePerPulse(Math.PI*(2*kWheelRadiusMeters)/64);
+    // rightEncoder.setDistancePerPulse(Math.PI*(2*kWheelRadiusMeters)/64);
+    // leftEncoder.reset();
+    // rightEncoder.reset();
+    // m_navX.reset();
 
     // All other subsystem initialization
     // ...
 
     // Configure AutoBuilder last
-    AutoBuilder.configureRamsete(
-            this::getPose, // Robot pose supplier
-            this::resetPose, // Method to reset odometry (will be called if your auto has a starting pose)
-            this::getSpeeds, // Current ChassisSpeeds supplier
-            this::drive, // Method that will drive the robot given ChassisSpeeds
-            new ReplanningConfig(), // Default path replanning config. See the API for the options here
-            () -> {
-              // Boolean supplier that controls when the path will be mirrored for the red alliance
-              // This will flip the path being followed to the red side of the field.
-              // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+    // AutoBuilder.configureRamsete(
+    //         this::getPose, // Robot pose supplier
+    //         this::resetPose, // Method to reset odometry (will be called if your auto has a starting pose)
+    //         this::getSpeeds, // Current ChassisSpeeds supplier
+    //         this::drive, // Method that will drive the robot given ChassisSpeeds
+    //         new ReplanningConfig(), // Default path replanning config. See the API for the options here
+    //         () -> {
+    //           // Boolean supplier that controls when the path will be mirrored for the red alliance
+    //           // This will flip the path being followed to the red side of the field.
+    //           // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
 
-              var alliance = DriverStation.getAlliance();
-              if (alliance.isPresent()) {
-                return alliance.get() == DriverStation.Alliance.Red;
-              }
-              return false;
-            },
-            this // Reference to this subsystem to set requirements
-    );
+    //           var alliance = DriverStation.getAlliance();
+    //           if (alliance.isPresent()) {
+    //             return alliance.get() == DriverStation.Alliance.Red;
+    //           }
+    //           return false;
+    //         },
+    //         this // Reference to this subsystem to set requirements
+    // );
   }
 
 
@@ -198,54 +211,100 @@ public class Drivetrain extends SubsystemBase {
     m_drivetrain.arcadeDrive(speed, rotation);
   }
 
-    public void drive(ChassisSpeeds speeds){
-    DifferentialDriveWheelSpeeds wheelSpeeds = kDriveKinematics.toWheelSpeeds(speeds);
-    m_drivetrain.arcadeDrive(wheelSpeeds.leftMetersPerSecond, wheelSpeeds.rightMetersPerSecond);
-  }
+  public Command getDriveCommand(double forward){
+    return this.runOnce(
+      () -> {
+        m_drivetrain.feed();
+        //arcadeDrive(forward);
+        frontLeft.set(forward);
+        frontRight.set(forward);
+      }
+      );
 
-    public ChassisSpeeds getSpeeds(){
-    DifferentialDriveWheelSpeeds speeds = new DifferentialDriveWheelSpeeds(leftEncoder.getRate(), rightEncoder.getRate());
-    return kDriveKinematics.toChassisSpeeds(speeds);
-  }
-
-  
-  public double getRightEncoderDistance(){
-    return rightEncoder.getDistance();
-  }
-
-  public double getLeftEncoderDistance(){
-    return leftEncoder.getDistance();
 
   }
 
-    public double getLeftEncoderVelocity(){
-    return leftEncoder.getRate();
+  public Command getDriveContCommand(double forward){
+    return this.startEnd(
+      () -> {
+       // frontLeft.setInverted(true);
+        m_drivetrain.feed();
+        // frontLeft.setExpiration(0.1);
+        // frontRight.setExpiration(0.1);
+        //frontLeft.setSafetyEnabled(false);
+       // frontRight.setSafetyEnabled(false);
+        frontLeft.set(forward);
+        frontRight.set(forward);
+      },
+      () -> {
+        m_drivetrain.feed();
+        frontLeft.set(0);
+        frontRight.set(0);
+      }
+    );
   }
 
-  public double getRightEncoderVelocity(){
-    return rightEncoder.getRate();
-  }
-
-  public double getHeading(){
-    return m_navX.getRotation2d().getDegrees();
-  }
-
-  public double getTurnRate() {
-    return -m_navX.getRate();
-  }
-
-  public Pose2d getPose(){
-    return m_odometry.getPoseMeters();
-  }
+  //public Command getDriveContCommand()
 
   
-  public void resetPose(Pose2d initialPose2d){
-    m_odometry.resetPosition(m_navX.getRotation2d(), null, initialPose2d);
-  }
 
-  public DifferentialDriveWheelSpeeds getWheelSpeeds(){
-    return new DifferentialDriveWheelSpeeds(leftEncoder.getRate(), rightEncoder.getRate());
+    public Command getRotateCommand(double forward, double rotation){
+    return this.runOnce(
+      () -> {
+        arcadeDrive(0, rotation);
+
   }
+  );
+}
+
+  //   public void drive(ChassisSpeeds speeds){
+  //   DifferentialDriveWheelSpeeds wheelSpeeds = kDriveKinematics.toWheelSpeeds(speeds);
+  //   m_drivetrain.arcadeDrive(wheelSpeeds.leftMetersPerSecond, wheelSpeeds.rightMetersPerSecond);
+  // }
+
+  //   public ChassisSpeeds getSpeeds(){
+  //   DifferentialDriveWheelSpeeds speeds = new DifferentialDriveWheelSpeeds(leftEncoder.getRate(), rightEncoder.getRate());
+  //   return kDriveKinematics.toChassisSpeeds(speeds);
+  // }
+
+  //   public void resetPose(Pose2d initialPose2d){
+  //   m_odometry.resetPosition(m_navX.getRotation2d(), null, initialPose2d);
+  // }
+
+
+  //   public Pose2d getPose(){
+  //   return m_odometry.getPoseMeters();
+  // }
+
+  
+  // public double getRightEncoderDistance(){
+  //   return rightEncoder.getDistance();
+  // }
+
+  // public double getLeftEncoderDistance(){
+  //   return leftEncoder.getDistance();
+
+  // }
+
+  //   public double getLeftEncoderVelocity(){
+  //   return leftEncoder.getRate();
+  // }
+
+  // public double getRightEncoderVelocity(){
+  //   return rightEncoder.getRate();
+  // }
+
+  // public double getHeading(){
+  //   return m_navX.getRotation2d().getDegrees();
+  // }
+
+  // public double getTurnRate() {
+  //   return -m_navX.getRate();
+  // }
+
+  // public DifferentialDriveWheelSpeeds getWheelSpeeds(){
+  //   return new DifferentialDriveWheelSpeeds(leftEncoder.getRate(), rightEncoder.getRate());
+  // }
 
 
   //already handled?
@@ -255,27 +314,27 @@ public class Drivetrain extends SubsystemBase {
   //   m_odometry.resetPosition(pose, m_navX.getRotation2d());
   // } 
 
-  public void tankDriveVolts(double leftVolts, double rightVolts){
-    frontLeft.setVoltage(leftVolts);
-    frontRight.setVoltage(rightVolts);
-    m_drivetrain.feed();
-  }
+//   public void tankDriveVolts(double leftVolts, double rightVolts){
+//     frontLeft.setVoltage(leftVolts);
+//     frontRight.setVoltage(rightVolts);
+//     m_drivetrain.feed();
+//   }
 
-  public double getAverageEncoderDistance(){
-    return (leftEncoder.getDistance() + rightEncoder.getDistance() / 2);
-  }
+//   public double getAverageEncoderDistance(){
+//     return (leftEncoder.getDistance() + rightEncoder.getDistance() / 2);
+//   }
 
-  public Command sysIdQuasistatic(SysIdRoutine.Direction direction){
-  return m_sysIdRoutine.quasistatic(direction);
-}
+//   public Command sysIdQuasistatic(SysIdRoutine.Direction direction){
+//   return m_sysIdRoutine.quasistatic(direction);
+// }
 
-public Command sysIdDynamic(SysIdRoutine.Direction direction) {
-  return m_sysIdRoutine.dynamic(direction);
-}
+// public Command sysIdDynamic(SysIdRoutine.Direction direction) {
+//   return m_sysIdRoutine.dynamic(direction);
+// }
 
-public void setMaxOutput(double maxOutput){
-  m_drivetrain.setMaxOutput(maxOutput);
-}
+// public void setMaxOutput(double maxOutput){
+//   m_drivetrain.setMaxOutput(maxOutput);
+// }
 
 
 public void stop(){
@@ -292,42 +351,56 @@ public Command getStopDriveCommand() {
 });
 }
 
-public Command driveDistance(double distance, double speed){
-  return runOnce(
-    () -> {
-      leftEncoder.reset();
-      rightEncoder.reset();
-    })
-    .andThen(run(() -> m_drivetrain.arcadeDrive(speed, 0)))
-    .until(
-      () -> Math.max(leftEncoder.getDistance(), rightEncoder.getDistance()) >= distance) 
+// public Command resetEncoders(){
+//   return this.startEnd(
+//     ()-> {
+//       leftEncoder.reset();
+//       rightEncoder.reset();
+//     },
+//     ()-> { leftEncoder.reset(); 
+//            rightEncoder.reset();}
+//   );
+// }
 
-      .finallyDo(interrupted -> frontLeft.stopMotor())
-      .finallyDo(interrupted -> frontRight.stopMotor());
-}
+// public Command driveDistance(double distance, double speed){
+//   return runOnce(
+//     () -> {
+//       leftEncoder.reset();
+//       rightEncoder.reset();
+//     })
+//     .andThen(run(() -> m_drivetrain.arcadeDrive(speed, 0)))
+//     .until(
+//       () -> Math.max(leftEncoder.getDistance(), rightEncoder.getDistance()) >= distance) 
+
+//       .finallyDo(interrupted -> frontLeft.stopMotor())
+//       .finallyDo(interrupted -> frontRight.stopMotor());
+// }
 
 // public Command rotateAngle(double speed, double angle){
 //   return runOnce(
 //     () -> {
 //       m_navX.reset();
 //     })
-//     .andThen(run(() -> m_drivetrain.arcadeDrive(0, angle)))
+//     .andThen(run(() -> m_drivetrain.arcadeDrive(angle, 0)))
 //     .until(
-//       () -> Math.max(m_navX.getAngle()) >= angle)
+//       () -> (m_navX.getAngle()) >= angle)
 //       .finallyDo(interrupred -> frontLeft.stopMotor())
 //       .finallyDo(interrupted -> frontRight.stopMotor());
     
 // }
+
   @Override
   public void periodic() {
 
-    SmartDashboard.putNumber("Right Encoder distance", getRightEncoderDistance());
-    SmartDashboard.putNumber("Right Encoder velocity", getRightEncoderVelocity());
-    SmartDashboard.putNumber("Left Encoder velocity", getLeftEncoderVelocity());
-    SmartDashboard.putNumber("Left Encoder distance", getLeftEncoderDistance());
-    SmartDashboard.putNumber("Left current", frontLeft.getSupplyCurrent());
-    SmartDashboard.putNumber("Right current", frontRight.getSupplyCurrent());
-    SmartDashboard.putNumber("Gyro heading", getHeading());
+    // SmartDashboard.putNumber("Right Encoder distance", getRightEncoderDistance());
+    // SmartDashboard.putNumber("Right Encoder velocity", getRightEncoderVelocity());
+    // SmartDashboard.putNumber("Left Encoder velocity", getLeftEncoderVelocity());
+    // SmartDashboard.putNumber("Left Encoder distance", getLeftEncoderDistance());
+    // SmartDashboard.putNumber("Left current", frontLeft.getSupplyCurrent());
+    // SmartDashboard.putNumber("Right current", frontRight.getSupplyCurrent());
+    // SmartDashboard.putNumber("Gyro heading", getHeading());
+    // SmartDashboard.putNumber("Gyro angle", m_navX.getAngle());
+    // //System.out.println("Test");
     /*This method will be called once per scheduler run. It can be used for running tasks we know we want to update each
      * loop such as processing sensor data. Our drivetrain is simple so we don't have anything to put here */
   }

@@ -13,7 +13,7 @@ import static frc.robot.Constants.IntakeConstants.*;
 public class Intake extends SubsystemBase{
     WPI_VictorSPX m_intakeMotor;
     WPI_VictorSPX m_indexMotor;
-    DigitalInput m_beamBreak;
+    //DigitalInput m_beamBreak;
 
     public Intake(){
         m_intakeMotor = new WPI_VictorSPX(kIntakeID);
@@ -34,6 +34,19 @@ public class Intake extends SubsystemBase{
             });
 }
 
+    public Command getIndexCommand() {
+        return this.startEnd(
+            ()-> {
+                setIntakeSpeed(kIndexSpeed);
+            },
+            
+            ()-> {
+                stop();
+            });
+}
+
+
+
     public Command getReverseIntakeCommand() {
         return this.startEnd(
             ()-> {
@@ -53,6 +66,15 @@ public class Intake extends SubsystemBase{
             ()-> {stop();
     });
 }
+
+    public Command setIntakeSpeedCommand(double speed){
+        return this.runOnce(
+            () -> {
+                setIntakeSpeed(speed);
+            }
+        );
+    }
+
 public void setIntakeSpeed(double speed){
     m_intakeMotor.set(speed);
 }
@@ -61,9 +83,19 @@ public void setIntakeVoltage(){
     m_intakeMotor.setVoltage(kIntakeVoltage);
 }
 
-public boolean getBeamBreak(){
-    return m_beamBreak.get();
-}
+// public boolean getBeamBreak(){
+//     return m_beamBreak.get();
+// }
+
+//  @Override 
+//  public void periodic(){
+//     if(m_beamBreak.get()){
+//         System.out.println("Aligned");
+//      }
+//      else if(m_beamBreak.get() == false){
+//         System.out.println("Broken");
+//      }
+// }
 
 public void stop(){
     m_intakeMotor.set(0);
