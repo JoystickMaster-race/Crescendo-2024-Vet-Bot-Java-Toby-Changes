@@ -4,14 +4,14 @@
 
 package frc.robot;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.List;
+// import java.io.IOException;
+// import java.nio.file.Path;
+// import java.util.List;
 
-import com.pathplanner.lib.auto.AutoBuilder;
+// import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
-import com.pathplanner.lib.commands.PathPlannerAuto;
-import com.pathplanner.lib.path.PathPlannerPath;
+// import com.pathplanner.lib.commands.PathPlannerAuto;
+// import com.pathplanner.lib.path.PathPlannerPath;
 
 import edu.wpi.first.cameraserver.CameraServer;
 
@@ -75,13 +75,6 @@ public class RobotContainer {
 
 //    private Command spinUpShooterCommand = Commands.runOnce(m_shooter::enable, m_shooter);
 //    private Command  stopShooterCommand = Commands.runOnce(m_shooter::disable, m_shooter);
-  
-
-  //SendableChooser<Command> chooser = new SendableChooser<>();
-
-  
-  //private final SendableChooser<Command> chooser;
-
 
   /*The gamepad provided in the KOP shows up like an XBox controller if the mode switch is set to X mode using the
    * switch on the top.*/
@@ -91,86 +84,32 @@ public class RobotContainer {
       new CommandXboxController(OperatorConstants.kOperatorControllerPort);
 
   private final DigitalInput m_beamSensor = new DigitalInput(7);
-  //AHRS m_gyro = new AHRS(SPI.Port.kMXP);
-  //CameraServer m_camera = new CameraServer
 
   public BooleanSupplier beambroken = () -> !m_beamSensor.get();
   public BooleanSupplier beamConnected = () -> m_beamSensor.get();
-    
-  //private final DigitalInput m_beamBreak = new DigitalInput(7);
-    
-    //SendableChooser<Command> autoChooser;
-    SendableChooser<Command> autoChooser;
-    // Command a_Taxi = Autos.TaxiAuto(m_drivetrain);
-    // Command a_Shoot = Autos.Shoot(m_drivetrain, m_shooter, m_intake);
-    // Command a_Test = Autos.Test(m_drivetrain, m_shooter, m_intake);
-    // Command a_Wait = Autos.a_Wait(m_intake, m_shooter, m_drivetrain);
+  SendableChooser<Command> autoChooser;
+
     Command a_CJ = Autos.CJ(m_drivetrain, m_shooter, m_intake);
     Command a_Anna = Autos.Anna(m_drivetrain, m_shooter, m_intake);
     Command a_Max = Autos.Max(m_drivetrain, m_intake, m_shooter);
-    //SmartDashboard.putData("Chooser", autoChooser)
-    //Command bob = Autos.bob();
-    //Autos.a_Trial trial;
-    //Command a_ShootTaxi = Autos.Shoot_Taxi(m_drivetrain, m_shooter, m_intake);
-    // Command a_TwoNote = Autos.Two_Note(m_drivetrain, m_shooter, m_intake);
-    // Command a_ThreeNoteGreedy = Autos.Three_Note_Greedy(m_drivetrain, m_shooter, m_intake);
- 
-    //Command a_Distrupt = Autos.ShootDistrupt(m_drivetrain, m_shooter, m_intake);
+
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
 
+    autoChooser = new SendableChooser<>();
     //autoChooser = AutoBuilder.buildAutoChooser();
-    // autoChooser = SendableChooser
-    //SendableChooser<Command> autoChooser;
-    //autoChooser = new SendableChooser<Command>
-    //autoChooser = AutoBuilder.buildAutoChooser("My Default Auto");
-    autoChooser = AutoBuilder.buildAutoChooser();
     SmartDashboard.putData("AutoChooser", autoChooser);
 
-    // autoChooser.addOption("Taxi", a_Taxi);
-    // autoChooser.addOption("Shoot", a_Shoot);
-    // autoChooser.addOption("Test", a_Test);
-    // autoChooser.addOption("Trial", trial);
-    // autoChooser.addOption("Wait", a_Wait);
     autoChooser.addOption("CJ", a_CJ);
     autoChooser.addOption("Anna", a_Anna);
     autoChooser.addOption("Max", a_Max);
-    //autoChooser.addOption("Bob", bob);
-    //autoChooser.addOption("Shoot and Taxi", a_ShootTaxi);
-    //autoChooser.addOption("TwoNoteGreedy", a_TwoNote);
-    //autoChooser.addOption("Distruption", a_Distrupt);
-    //autoChooser.addOption("ThreeNoteGreedy!", a_ThreeNoteGreedy);
-
-    NamedCommands.registerCommand("Set Intake", m_intake.getIntakeCommand().withTimeout(3));
-    NamedCommands.registerCommand("Shooter Raw", m_shooter.getShootCommand());
-
-    //KnightKrawlers
-   // NamedCommands.registerCommand("Intake ", new m_intake.getIntakeCommand());
-    //NamedCommands.registerCommand("Shooter Spinup", spinUpShooterCommand);
 
 
-    // **Raw/Sensor Style**
+    // NamedCommands.registerCommand("Set Intake", m_intake.getIntakeCommand().withTimeout(3));
+    // NamedCommands.registerCommand("Shooter Raw", m_shooter.getShootCommand());
 
-    // Command FancyAuto = Autos.FancyAuto(m_drivetrain);
-    // Command RawTaxi = Autos.TaxiAuto(m_drivetrain);
-    // chooser.addOption("Fancy Auto", FancyAuto);  
-    // chooser.addOption("Raw Taxi", RawTaxi);
-
-    // Configure the trigger bindings
-    //Old Way
     configureBindings();
-    // chooser.addOption("Curvy path", loadPathToRamsete("C:/Users/foxlo/Documents/Crescendo-2024-Vet-Bot-Java-Toby-Changes/src/main/deploy/deploy/pathplanner/paths/Straight.path",
-    //  true) );
-    // chooser.addOption("Straight", loadPathToRamsete("C:/Users/foxlo/Documents/Crescendo-2024-Vet-Bot-Java-Toby-Changes/src/main/deploy/deploy/pathplanner/paths/Curved.path", true));
 
-    // chooser.addOption("Taxi Raw", Autos.TaxiAuto(m_drivetrain));
-    //SmartDashboard.putData(chooser);
-
-    //Shuffleboard.getTab("Autonomous").add(chooser);
-
-    // chooser.addOption("taxi path", getAutonomousCommand());
-
-     //Shuffleboard.getTab("Autonomous options").add(chooser);
   }
   
   /**
@@ -180,30 +119,41 @@ public class RobotContainer {
    */
   private void configureBindings() {
     // Set the default command for the drivetrain to drive using the joysticks
+
+    // VERY IMPORTANT
     m_drivetrain.setDefaultCommand(
+      //new RunCommand( () -> m_drivetrain.getDriveContCommand(1)).withTimeout(100));
         new RunCommand(
             () ->
                 m_drivetrain.arcadeDrive(
                     m_driverController.getRightX(), m_driverController.getLeftY()),
             m_drivetrain));
-
     
     CameraServer.startAutomaticCapture("9191 Cam", 0);
     m_operatorController.pov(315).whileTrue(m_intake.getIntakeCommand().until(beambroken).andThen(new SetLEDDigitalOutputCommand(m_led_output, true).alongWith(m_intake.getIndexCommand()).until(beamConnected)).andThen(new SetLEDDigitalOutputCommand(m_led_output, false)));
+    //m_operatorController.x().whileTrue(m_intake.getIntakeCommand().until(beambroken).andThen(new SetLEDDigitalOutputCommand(m_led_output, true).alongWith(m_intake.getIndexCommand()).until(beamConnected)).andThen(new SetLEDDigitalOutputCommand(m_led_output, false)));
+    // if(m_driverController.getLeftY() > 0.05){
+    //   m_drivetrain.frontLeft.set(m_driverController.getLeftY());
+    //   m_drivetrain.frontRight.set(m_driverController.getLeftY());
+    //   m_drivetrain.backLeft.set(m_driverController.getLeftY());
+    //   m_drivetrain.backRight.set(m_driverController.getLeftY());
+    // }
+    //CHECK THIS
+    //m_driverController.a().onTrue(m_drivetrain.Safety());
 
-    //TEST THIS
-    //m_driverController.y().whileTrue(m_drivetrain.getDriveCommand(1));
-   // m_operatorController.y().whileTrue(m_shooter.getShuttleCommand());
-    //m_operatorController.y().whileTrue(m_led_output.setOutput(false));
-   // m_driverController.x().whileTrue(m_drivetrain.getRotateCommand(1));
+    //new RunCommand( () -> m_drivetrain.arcadeDrive(m_driverController.getRightX(), m_driverController.getLeftY()), m_drivetrain);
 
+    //m_driverController.getLeftY().whileTrue(m_drivetrain.arcadeDrive(1, 0));
+    //m_driverController.getLeftY().whileTrue(m_drivetrain.getDriveCommand(m_driverController.getLeftY()));
 
-    //m_driverController.a().whileTrue(new RunCommand(() -> m_drivetrain.arcadeDrive(0.5, 0)));
-
-    //m_driverController.x().onTrue(m_drivetrain.rotateAngle(0, 90));
+    // if(m_driverController.getLeftY() > 0.05){
+    //   m_drivetrain.getDriveCommand(m_driverController.getLeftY());
+    // }
 
     m_operatorController.pov(225).whileTrue(m_intake.getReverseIntakeCommand());
     m_operatorController.pov(225).whileTrue(m_shooter.getReverseShootCommand());
+
+    //m_operatorController.getRightBumper().whileTrue(m_shooter.getIntak)
     // m_operatorController.pov(225).whileTrue(new SetLEDDigitalOutputCommand(m_led_output, false));
 
     m_operatorController.b().whileTrue(m_shooter.getShootCommand());
@@ -212,40 +162,6 @@ public class RobotContainer {
     // m_operatorController.a().whileTrue(new SetLEDDigitalOutputCommand(m_led_output, false));
     m_operatorController.x().whileTrue(m_shooter.getShuttleCommand());
     // m_operatorController.x().whileTrue(new SetLEDDigitalOutputCommand(m_led_output, false));
-
-    // if(m_intake.getBeamBreak() == false){
-    //     m_intake.getIntakeCommand().withTimeout(2);
-    // }
-    // m_operatorController.a().whileTrue(spinUpShooterCommand);
-    // m_operatorController.x().whileTrue(stopShooterCommand);
-
-    //m_driverController.a().onTrue(m_drivetrain.resetEncoders());
-
-
-    // if(m_operatorController.getRightTriggerAxis() > 0.05){
-    //   m_shooter.enable();
-    // }
-        // m_intake.periodic(if(m_intake.getBeamBreak()){
-        //     System.out.println("Working");
-        // }
-
-    // m_intake.periodic();
-    // {
-    //     if(m_intake.getBeamBreak()){
-    //         System.out.println("Broken");
-    //     }
-    // }
-
-    // if(m_beamBreak.get()){
-    //     System.out.println("Working");
-    // }
-
-    // if(m_intake.getBeamBreak()){
-    // //   new RunCommand(() -> m_intake.stop(), m_intake)
-    // //     .withTimeout(0.5);
-    //     //SmartDashboard.putNumber("yes", 1);
-    //     System.out.println("Broken");
-    // }
 
     //**Boring X-BOX Controls**
     if(m_operatorController.getLeftY() < 0.05){
@@ -267,45 +183,7 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
 
-    //return new PathPlannerAuto("Straight");
-
-
-    // **Safe way!!**
-    //return chooser.getSelected();
-    //return new PathPlannerAuto("Straight");
-
     return autoChooser.getSelected();
-   
-    //return Autos.a_Trial();
-
-     // Load the path you want to follow using its name in the GUI
-    // PathPlannerPath path = PathPlannerPath.fromPathFile("Straight");
-
-    // // Create a path following command using AutoBuilder. This will also trigger event markers.
-    // return AutoBuilder.followPath(path);
-
-    // An example command will be run in autonomous
-  //   var autoVoltageConstraint = new DifferentialDriveVoltageConstraint(
-  //     new SimpleMotorFeedforward(DrivetrainConstants.ksVolts, DrivetrainConstants.kvVoltSecondsPerMeter, DrivetrainConstants.kaVoltSecondsSquareMeter), DrivetrainConstants.kDriveKinematics, 10);
-  //   return Autos.exampleAuto(m_drivetrain);
-
-  // TrajectoryConfig config = new TrajectoryConfig(3, 1)
-  //  .setKinematics(DrivetrainConstants.kDriveKinematics)
-  //  .addConstraint(autoVoltageConstraint);
-
-  // Trajectory exampleTraj = TrajectoryGenerator.generateTrajectory( new Pose2d(0, 0, new Rotation2d(0)), List.of(new Translation2d(1, 1), new Translation2d(2, -1)),
-  // new Pose2d(3, 0, new Rotation2d(0)),
-  // config);
-  
-  //   RamseteCommand ramseteCommand = new RamseteCommand(exampleTraj, m_drivetrain::getPose,
-  //   new RamseteController(DrivetrainConstants.kRamseteB, DrivetrainConstants.kRamseteZeta),
-  //   new SimpleMotorFeedforward(DrivetrainConstants.ksVolts, DrivetrainConstants.kvVoltSecondsPerMeter,
-  //   DrivetrainConstants.kaVoltSecondsSquareMeter),
-  //   DrivetrainConstants.kDriveKinematics, m_drivetrain::getWheelSpeeds,
-  //   new PIDController(DrivetrainConstants.kPDriveVel, 0, 0),
-  //   new PIDController(DrivetrainConstants.kPDriveVel, 0, 0), m_drivetrain::tankDriveVolts,
-  //   m_drivetrain);
-
 
   }
 }

@@ -66,7 +66,7 @@ public final class Constants {
 
     public static final double kShooterSpeed = 1;
     public static final double kReverseShooterSpeed = -1;
-    public static final double kShuttleSpeed = 0.8;
+    public static final double kShuttleSpeed = 0.85;
 
 
   
