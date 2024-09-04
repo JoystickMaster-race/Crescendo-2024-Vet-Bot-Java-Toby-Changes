@@ -215,11 +215,46 @@ public class Drivetrain extends SubsystemBase {
   //   m_odometry.resetPosition(pose, m_navX.getRotation2d());
   // } 
 
+  public void resetOdometry(Pose2d pose) {
+    m_odometry.resetPosition(
+        m_navX.getRotation2d(), leftEncoder.getDistance(), rightEncoder.getDistance(), pose);
+  }
+
   public void tankDriveVolts(double leftVolts, double rightVolts){
     frontLeft.setVoltage(leftVolts);
     frontRight.setVoltage(rightVolts);
     m_drivetrain.feed();
   }
+
+//       public Command getIntakeCommand() {
+//         return this.startEnd(
+//             ()-> {
+//                 tankDriveVolts(leftVolts, rightVolts);
+//             },
+            
+//             ()-> {
+//                 stop();
+//             });
+// }`
+
+public Command getDriveCommand(double forward, double rotation){
+  return this.runOnce(
+    () -> {
+      //m_drivetrain.feed();
+      //arcadeDrive(forward);
+      frontLeft.set(-forward);
+      frontRight.set(forward);
+      backLeft.set(-forward);
+      backRight.set(forward);
+
+      backLeft.set(-rotation);
+      backRight.set(-rotation);
+      frontLeft.set(rotation);
+      frontRight.set(rotation);
+    }
+    );
+
+}
 
   public double getAverageEncoderDistance(){
     return (leftEncoder.getDistance() + rightEncoder.getDistance() / 2);

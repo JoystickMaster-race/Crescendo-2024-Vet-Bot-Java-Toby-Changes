@@ -8,6 +8,9 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.RunCommand;
+
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.RamseteController;
 import edu.wpi.first.wpilibj2.command.RamseteCommand;
@@ -26,6 +29,7 @@ import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.RamseteCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
@@ -52,7 +56,6 @@ public class RobotContainer {
    private final Drivetrain m_drivetrain = new Drivetrain();
    private final Shooter m_shooter = new Shooter();
    private final Intake m_intake = new Intake();
-  
 
   SendableChooser<Command> chooser = new SendableChooser<>();
 
@@ -179,29 +182,37 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     //return new InstantCommand();
-    return chooser.getSelected();
+    //return chooser.getSelected();
     // An example command will be run in autonomous
-  //   var autoVoltageConstraint = new DifferentialDriveVoltageConstraint(
-  //     new SimpleMotorFeedforward(DrivetrainConstants.ksVolts, DrivetrainConstants.kvVoltSecondsPerMeter, DrivetrainConstants.kaVoltSecondsSquareMeter), DrivetrainConstants.kDriveKinematics, 10);
-  //   return Autos.exampleAuto(m_drivetrain);
 
-  // TrajectoryConfig config = new TrajectoryConfig(3, 1)
-  //  .setKinematics(DrivetrainConstants.kDriveKinematics)
-  //  .addConstraint(autoVoltageConstraint);
+    
+    var autoVoltageConstraint = new DifferentialDriveVoltageConstraint(
+      new SimpleMotorFeedforward(DrivetrainConstants.ksVolts, DrivetrainConstants.kvVoltSecondsPerMeter, DrivetrainConstants.kaVoltSecondsSquareMeter), DrivetrainConstants.kDriveKinematics, 10);
+    //return Autos.exampleAuto(m_drivetrain);
 
-  // Trajectory exampleTraj = TrajectoryGenerator.generateTrajectory( new Pose2d(0, 0, new Rotation2d(0)), List.of(new Translation2d(1, 1), new Translation2d(2, -1)),
-  // new Pose2d(3, 0, new Rotation2d(0)),
-  // config);
+      TrajectoryConfig config = new TrajectoryConfig(3, 1)
+   .setKinematics(DrivetrainConstants.kDriveKinematics)
+   .addConstraint(autoVoltageConstraint);
+
+
+
+  Trajectory exampleTraj = TrajectoryGenerator.generateTrajectory( new Pose2d(0, 0, new Rotation2d(0)), List.of(new Translation2d(1, 0), new Translation2d(0, 0)),
+  new Pose2d(0, 0, new Rotation2d(0)),
+  config);
   
-  //   RamseteCommand ramseteCommand = new RamseteCommand(exampleTraj, m_drivetrain::getPose,
-  //   new RamseteController(DrivetrainConstants.kRamseteB, DrivetrainConstants.kRamseteZeta),
-  //   new SimpleMotorFeedforward(DrivetrainConstants.ksVolts, DrivetrainConstants.kvVoltSecondsPerMeter,
-  //   DrivetrainConstants.kaVoltSecondsSquareMeter),
-  //   DrivetrainConstants.kDriveKinematics, m_drivetrain::getWheelSpeeds,
-  //   new PIDController(DrivetrainConstants.kPDriveVel, 0, 0),
-  //   new PIDController(DrivetrainConstants.kPDriveVel, 0, 0), m_drivetrain::tankDriveVolts,
-  //   m_drivetrain);
+    RamseteCommand ramseteCommand = new RamseteCommand(exampleTraj, m_drivetrain::getPose,
+    new RamseteController(DrivetrainConstants.kRamseteB, DrivetrainConstants.kRamseteZeta),
+    new SimpleMotorFeedforward(DrivetrainConstants.ksVolts, DrivetrainConstants.kvVoltSecondsPerMeter,
+    DrivetrainConstants.kaVoltSecondsSquareMeter),
+    DrivetrainConstants.kDriveKinematics, m_drivetrain::getWheelSpeeds,
+    new PIDController(DrivetrainConstants.kPDriveVel, 0, 0),
+    new PIDController(DrivetrainConstants.kPDriveVel, 0, 0), m_drivetrain::tankDriveVolts,
+    m_drivetrain);
 
+    return Commands.runOnce(() -> m_drivetrain.resetOdometry(exampleTraj.getInitialPose()))
+    .andThen(ramseteCommand).andThen(Commands.runOnce(() -> m_drivetrain.getDriveCommand(0, 0)));
 
+    // return Commands.runOnce(() -> m_drivetrain.ramseteCommand());//.andThen(Commands.runOnce(() -> m_drivetrain.getDriveCommand(0, 0))));
+    
   }
 }
