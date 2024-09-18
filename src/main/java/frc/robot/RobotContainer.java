@@ -57,6 +57,7 @@ public class RobotContainer {
    private final Shooter m_shooter = new Shooter();
    private final Intake m_intake = new Intake();
 
+
   SendableChooser<Command> chooser = new SendableChooser<>();
 
   /*The gamepad provided in the KOP shows up like an XBox controller if the mode switch is set to X mode using the
@@ -103,7 +104,12 @@ public class RobotContainer {
     new PIDController(DrivetrainConstants.kPDriveVel, 0, 0), m_drivetrain::tankDriveVolts,
     m_drivetrain);
 
-     return ramseteCommand;
+         if(resetOdometry) {
+      return new SequentialCommandGroup(
+        new InstantCommand(() -> m_drivetrain.resetOdometry(trajectory.getInitialPose())), ramseteCommand);
+    } else {
+      return ramseteCommand;
+    }
 
    }
   /**
@@ -157,9 +163,11 @@ public class RobotContainer {
 
     // Set up a binding to run the intake command while the operator is pressing and holding the
     // left Bumper
-    m_operatorController.leftBumper().whileTrue(m_shooter.getShootCommand());
-    m_guitarHero.povCenter().whileTrue(m_intake.getIntakeCommand());
-    m_guitarHero.pov(270).whileTrue(m_intake.getReverseIntakeCommand());
+    m_operatorController.x().whileTrue(m_shooter.getShootCommand());
+    m_operatorController.a().whileTrue(m_intake.getIntakeCommand());
+    m_operatorController.b().whileTrue(m_intake.getReverseIntakeCommand());
+    //m_guitarHero.povCenter().whileTrue(m_intake.getIntakeCommand());
+    //m_guitarHero.pov(270).whileTrue(m_intake.getReverseIntakeCommand());
 
     if(m_intake.getBeamBreak()){
       new RunCommand(() -> m_intake.stop(), m_intake)
@@ -168,7 +176,7 @@ public class RobotContainer {
 
     if(m_operatorController.getLeftY() < 0.05){
       m_intake.getIntakeCommand();
-      m_intake.getReverseIntakeCommand();
+      //m_intake.getReverseIntakeCommand();
     } 
   }
 
@@ -182,35 +190,39 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     //return new InstantCommand();
-    //return chooser.getSelected();
+    return chooser.getSelected();
     // An example command will be run in autonomous
 
     
-    var autoVoltageConstraint = new DifferentialDriveVoltageConstraint(
-      new SimpleMotorFeedforward(DrivetrainConstants.ksVolts, DrivetrainConstants.kvVoltSecondsPerMeter, DrivetrainConstants.kaVoltSecondsSquareMeter), DrivetrainConstants.kDriveKinematics, 10);
-    //return Autos.exampleAuto(m_drivetrain);
+  //   var autoVoltageConstraint = new DifferentialDriveVoltageConstraint(
+  //     new SimpleMotorFeedforward(DrivetrainConstants.ksVolts, DrivetrainConstants.kvVoltSecondsPerMeter, DrivetrainConstants.kaVoltSecondsSquareMeter), DrivetrainConstants.kDriveKinematics, 10);
+  //   //return Autos.exampleAuto(m_drivetrain);
 
-      TrajectoryConfig config = new TrajectoryConfig(3, 1)
-   .setKinematics(DrivetrainConstants.kDriveKinematics)
-   .addConstraint(autoVoltageConstraint);
+  //     TrajectoryConfig config = new TrajectoryConfig(3, 1)
+  //  .setKinematics(DrivetrainConstants.kDriveKinematics)
+  //  .addConstraint(autoVoltageConstraint);
 
 
 
-  Trajectory exampleTraj = TrajectoryGenerator.generateTrajectory( new Pose2d(0, 0, new Rotation2d(0)), List.of(new Translation2d(1, 0), new Translation2d(0, 0)),
-  new Pose2d(0, 0, new Rotation2d(0)),
-  config);
+  // Trajectory exampleTraj = TrajectoryGenerator.generateTrajectory( new Pose2d(0, 0, new Rotation2d(0)), List.of(new Translation2d(0.2, 0), new Translation2d(0, 0)),
+  // new Pose2d(0.6, 0, new Rotation2d(0)),
+  // config);
   
-    RamseteCommand ramseteCommand = new RamseteCommand(exampleTraj, m_drivetrain::getPose,
-    new RamseteController(DrivetrainConstants.kRamseteB, DrivetrainConstants.kRamseteZeta),
-    new SimpleMotorFeedforward(DrivetrainConstants.ksVolts, DrivetrainConstants.kvVoltSecondsPerMeter,
-    DrivetrainConstants.kaVoltSecondsSquareMeter),
-    DrivetrainConstants.kDriveKinematics, m_drivetrain::getWheelSpeeds,
-    new PIDController(DrivetrainConstants.kPDriveVel, 0, 0),
-    new PIDController(DrivetrainConstants.kPDriveVel, 0, 0), m_drivetrain::tankDriveVolts,
-    m_drivetrain);
+  //   RamseteCommand ramseteCommand = new RamseteCommand(exampleTraj, m_drivetrain::getPose,
+  //   new RamseteController(DrivetrainConstants.kRamseteB, DrivetrainConstants.kRamseteZeta),
+  //   new SimpleMotorFeedforward(DrivetrainConstants.ksVolts, DrivetrainConstants.kvVoltSecondsPerMeter,
+  //   DrivetrainConstants.kaVoltSecondsSquareMeter),
+  //   DrivetrainConstants.kDriveKinematics, m_drivetrain::getWheelSpeeds,
+  //   new PIDController(DrivetrainConstants.kPDriveVel, 0, 0),
+  //   new PIDController(DrivetrainConstants.kPDriveVel, 0, 0), m_drivetrain::tankDriveVolts,
+  //   m_drivetrain);
 
-    return Commands.runOnce(() -> m_drivetrain.resetOdometry(exampleTraj.getInitialPose()))
-    .andThen(ramseteCommand).andThen(Commands.runOnce(() -> m_drivetrain.getDriveCommand(0, 0)));
+    //return Commands.runOnce(() -> m_drivetrain.resetOdometry(exampleTraj.getInitialPose()));
+    
+    // return Commands.runOnce(() -> m_drivetrain.resetOdometry(exampleTraj.getInitialPose()))
+    // .andThen(ramseteCommand).andThen(Commands.runOnce(() -> m_drivetrain.getDriveCommand(0, 0)));
+    
+
 
     // return Commands.runOnce(() -> m_drivetrain.ramseteCommand());//.andThen(Commands.runOnce(() -> m_drivetrain.getDriveCommand(0, 0))));
     
